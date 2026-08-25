@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#000000" />
+  <title>回声 · Sonar</title>
+  <style>
+    /* 设计提示：盲域极简主义——绝对黑为未知；白为认知；余烬红为暴露；旧金为出口。 */
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    #game-canvas { display: block; width: 100vw; height: 100vh; background: #000; cursor: crosshair; touch-action: none; }
+    .hud { position: fixed; z-index: 2; pointer-events: none; user-select: none; }
+    #brand { top: 16px; left: 20px; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.53); font-size: 10px; letter-spacing: .23em; text-transform: uppercase; }
+    #brand .mark-wrap { position: relative; display: block; width: 27px; height: 27px; }
+    #brand img, #brand .sonar-mark { position: absolute; inset: 0; width: 27px; height: 27px; display: block; object-fit: contain; }
+    #brand img { z-index: 1; opacity: 1; filter: contrast(1.22) brightness(1.16); }
+    #brand .sonar-mark { z-index: 0; overflow: visible; }
+    #brand .sonar-mark path { fill: none; stroke: rgba(246,246,242,.9); stroke-width: 1.15; }
+    #brand .sonar-mark circle { fill: #f6f6f2; }
+    #brand .sonar-mark line { stroke: rgba(161,42,48,.75); stroke-width: 1.15; }
+    #brand .wordmark { display: grid; gap: 2px; }
+    #brand .wordmark small { color: rgba(255,255,255,.26); font-size: 7px; letter-spacing: .16em; }
+    #usage { top: 20px; right: 24px; color: rgba(255,255,255,.49); text-align: right; font-size: 9px; line-height: 1.65; letter-spacing: .16em; }
+    #usage strong { display: block; color: rgba(255,255,255,.84); font-size: 14px; font-weight: 400; letter-spacing: .22em; }
+    #signal-state { top: 61px; right: 24px; color: rgba(255,255,255,.23); text-align: right; font-size: 8px; letter-spacing: .14em; transition: color .16s ease; }
+    #signal-state.hot { color: rgba(212,67,73,.78); }
+    #calibration { top: 56px; left: 21px; display: flex; align-items: flex-start; gap: 6px; height: 8px; }
+    #calibration i { display: block; width: 1px; height: 7px; background: rgba(255,255,255,.23); }
+    #calibration i:nth-child(2), #calibration i:nth-child(4) { height: 4px; }
+    #calibration i:nth-child(3) { height: 10px; background: rgba(255,255,255,.48); }
+    #hint { left: 20px; bottom: 18px; color: rgba(255,255,255,.28); font-size: 8px; letter-spacing: .13em; line-height: 2.05; transition: opacity .65s ease; }
+    #status { position: fixed; inset: 0; z-index: 3; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity .3s ease; }
+    #status.visible { opacity: 1; }
+    #status .message { transform: translateY(-3vh); text-align: center; color: #f2f2f0; text-shadow: 0 0 18px rgba(255,255,255,.19); }
+    #status .message.danger { color: #d44349; text-shadow: 0 0 22px rgba(161,42,48,.42); }
+    #status h1 { margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5vw, 66px); font-weight: 400; letter-spacing: .07em; }
+    #status p { margin: 0; color: rgba(255,255,255,.46); font-size: 10px; letter-spacing: .15em; }
+    @media (max-width: 560px) { #brand { top: 11px; left: 14px; } #usage { top: 14px; right: 14px; } #signal-state { top: 51px; right: 14px; } #calibration { top: 50px; left: 14px; } #hint { left: 14px; bottom: 13px; font-size: 8px; } #brand .wordmark { display: none; } }
+    @media (prefers-reduced-motion: reduce) { #hint, #status { transition: none; } }
+  </style>
+</head>
+<body>
+  <canvas id="game-canvas" aria-label="回声 Sonar 游戏画布"></canvas>
+  <div id="brand" class="hud"><span class="mark-wrap" aria-hidden="true"><svg class="sonar-mark" viewBox="0 0 24 24"><path d="M12 3 A9 9 0 1 0 20.5 8.9"/><circle cx="12" cy="12" r="1.55"/><line x1="19.2" y1="4.8" x2="21.4" y2="2.6"/></svg><img src="/manus-storage/sonar-logo_9e3805c0.png" alt="" onerror="this.style.display='none'" /></span><span class="wordmark">回声 / SONAR<small>SECTOR 01 · VOID MAP</small></span></div>
+  <div id="usage" class="hud">声呐使用次数<strong id="count">00</strong></div>
+  <div id="signal-state" class="hud">波段：静默</div>
+  <div id="calibration" class="hud" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  <div id="hint" class="hud">输入已监听<br>左键：声呐发射 · WASD：移动</div>
+  <div id="status"><div class="message"><h1 id="status-title"></h1><p id="status-copy"></p></div></div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const canvas = document.getElementById("game-canvas");
+    const ctx = canvas.getContext("2d");
+    const countEl = document.getElementById("count");
+    const hintEl = document.getElementById("hint");
+    const signalEl = document.getElementById("signal-state");
+    const statusEl = document.getElementById("status");
+    const statusTitle = document.getElementById("status-title");
+    const statusCopy = document.getElementById("status-copy");
+
+    const COLORS = { white: "#f6f6f2", red: "#a12a30", gold: "#d3aa58" };
+    const FADE_TIME = 1500;
+    const WALLS = [
+      [0.035, 0.055, 0.93, 0.010], [0.035, 0.935, 0.93, 0.010],
+      [0.035, 0.055, 0.010, 0.89], [0.955, 0.055, 0.010, 0.89],
+      [0.160, 0.100, 0.008, 0.570], [0.160, 0.480, 0.180, 0.009],
+      [0.310, 0.220, 0.008, 0.500], [0.310, 0.220, 0.170, 0.009],
+      [0.480, 0.100, 0.008, 0.440], [0.480, 0.540, 0.220, 0.009],
+      [0.700, 0.260, 0.008, 0.550], [0.700, 0.260, 0.200, 0.009],
+      [0.860, 0.110, 0.008, 0.450], [0.580, 0.750, 0.280, 0.009],
+      [0.480, 0.750, 0.008, 0.140], [0.160, 0.750, 0.180, 0.009],
+      [0.095, 0.790, 0.115, 0.009], [0.790, 0.610, 0.125, 0.009]
+    ];
+    const SPAWNS = [[0.245, 0.265], [0.395, 0.675], [0.610, 0.360], [0.775, 0.690], [0.905, 0.705]];
+    const DEMO = new URLSearchParams(location.search).has("demo");
+
+    let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
+    let player, exit, monsters, pulses, reveal, keys, state, sonarCount, audio, lastEchoAt, lastDemoAt;
+
+    function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+    function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
+    function walls() { return WALLS.map(([x, y, w, h]) => ({ x: x * width, y: y * height, w: w * width, h: h * height })); }
+    function pointAt([x, y]) { return { x: x * width, y: y * height }; }
+    function shuffle(list) { return list.slice().sort(() => Math.random() - 0.5); }
+
+    function reset() {
+      player = { ...pointAt([0.090, 0.865]), r: 5.2, exposedUntil: 0 };
+      exit = { ...pointAt([0.922, 0.135]), r: 7, revealUntil: 0 };
+      monsters = shuffle(SPAWNS).slice(0, 2 + Math.floor(Math.random() * 2)).map((spawn, index) => ({
+        ...pointAt(spawn), r: 10, id: index, revealUntil: 0, target: null, mode: "idle", searchUntil: 0, phase: Math.random() * Math.PI * 2
+      }));
+      pulses = [];
+      reveal = new Array(WALLS.length).fill(0);
+      keys = Object.create(null);
+      state = "playing";
+      sonarCount = 0;
+      lastEchoAt = 0;
+      lastDemoAt = performance.now() - 1800;
+      countEl.textContent = "00";
+      statusEl.classList.remove("visible");
+      hintEl.style.opacity = "1";
+    }
+
+    function resize() {
+      const oldWidth = width || innerWidth;
+      const oldHeight = height || innerHeight;
+      width = Math.max(1, innerWidth);
+      height = Math.max(1, innerHeight);
+      dpr = Math.min(2, devicePixelRatio || 1);
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (player) {
+        const sx = width / oldWidth, sy = height / oldHeight;
+        [player, exit, ...monsters].forEach(entity => { entity.x *= sx; entity.y *= sy; });
+        pulses.forEach(pulse => { pulse.x *= sx; pulse.y *= sy; pulse.radius *= Math.min(sx, sy); });
+      }
+    }
+
+    function collides(x, y, radius) {
+      for (const wall of walls()) {
+        const nearX = clamp(x, wall.x, wall.x + wall.w);
+        const nearY = clamp(y, wall.y, wall.y + wall.h);
+        if (dist(x, y, nearX, nearY) < radius) return true;
+      }
+      return false;
+    }
+
+    function move(entity, dx, dy) {
+      const nx = entity.x + dx;
+      if (!collides(nx, entity.y, entity.r)) entity.x = nx;
+      const ny = entity.y + dy;
+      if (!collides(entity.x, ny, entity.r)) entity.y = ny;
+    }
+
+    function ensureAudio() {
+      if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === "suspended") audio.resume();
+      return audio;
+    }
+
+    function tone(frequency, duration, volume, type = "sine", slideTo = null) {
+      if (!audio) return;
+      const now = audio.currentTime;
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, now);
+      if (slideTo) oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo), now + duration);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      oscillator.connect(gain).connect(audio.destination);
+      oscillator.start(now);
+      oscillator.stop(now + duration + 0.03);
+    }
+
+    function sonarSound() { tone(112, 0.62, 0.072, "sine", 42); tone(57, 0.54, 0.035, "triangle", 35); }
+    function echoSound(kind) { tone(kind === "monster" ? 420 : 620, kind === "monster" ? 0.10 : 0.075, 0.018, "sine", kind === "monster" ? 270 : 430); }
+    function failureSound() {
+      if (!audio) return;
+      const now = audio.currentTime;
+      const buffer = audio.createBuffer(1, audio.sampleRate * 0.68, audio.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+      const source = audio.createBufferSource(); const gain = audio.createGain();
+      const filter = audio.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 105;
+      gain.gain.setValueAtTime(0.0001, now); gain.gain.exponentialRampToValueAtTime(0.17, now + 0.045); gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.68);
+      source.buffer = buffer; source.connect(filter).connect(gain).connect(audio.destination); source.start(now);
+      tone(48, 0.62, 0.08, "sawtooth", 24);
+    }
+
+    function emitPulse() {
+      if (state !== "playing") return;
+      const now = performance.now();
+      ensureAudio();
+      sonarSound();
+      pulses.push({ id: ++pulseId, x: player.x, y: player.y, radius: 0, previousRadius: 0, max: Math.hypot(width, height) * 0.78, speed: Math.min(width, height) * 0.69, hitWalls: new Set(), hitMonsters: new Set(), hitExit: false });
+      player.exposedUntil = now + 450;
+      sonarCount += 1;
+      countEl.textContent = String(sonarCount).padStart(2, "0");
+      hintEl.style.opacity = "0";
+    }
+
+    function pulseHitsWall(pulse, wall) {
+      const nearestX = clamp(pulse.x, wall.x, wall.x + wall.w);
+      const nearestY = clamp(pulse.y, wall.y, wall.y + wall.h);
+      const gap = dist(pulse.x, pulse.y, nearestX, nearestY);
+      return gap > pulse.previousRadius - 4 && gap <= pulse.radius + 4;
+    }
+
+    function scanPulse(pulse, now) {
+      const screenWalls = walls();
+      screenWalls.forEach((wall, index) => {
+        if (!pulse.hitWalls.has(index) && pulseHitsWall(pulse, wall)) {
+          pulse.hitWalls.add(index); reveal[index] = now + FADE_TIME;
+          if (now - lastEchoAt > 76) { echoSound("wall"); lastEchoAt = now; }
+        }
+      });
+      monsters.forEach(monster => {
+        const distanceToMonster = dist(pulse.x, pulse.y, monster.x, monster.y);
+        if (!pulse.hitMonsters.has(monster.id) && distanceToMonster > pulse.previousRadius - monster.r && distanceToMonster <= pulse.radius + monster.r) {
+          pulse.hitMonsters.add(monster.id); monster.revealUntil = now + FADE_TIME;
+          monster.target = { x: pulse.x, y: pulse.y }; monster.mode = "investigate";
+          if (now - lastEchoAt > 76) { echoSound("monster"); lastEchoAt = now; }
+        }
+      });
+      const distanceToExit = dist(pulse.x, pulse.y, exit.x, exit.y);
+      if (!pulse.hitExit && distanceToExit > pulse.previousRadius - exit.r && distanceToExit <= pulse.radius + exit.r) {
+        pulse.hitExit = true; exit.revealUntil = now + FADE_TIME; echoSound("wall");
+      }
+    }
+
+    function endGame(result) {
+      if (state !== "playing") return;
+      state = result;
+      if (result === "lost") { failureSound(); statusEl.querySelector(".message").classList.add("danger"); statusTitle.textContent = "你被吞噬了"; statusCopy.textContent = "重置指令待命 · R"; }
+      else { statusEl.querySelector(".message").classList.remove("danger"); tone(220, 0.42, 0.05, "sine", 340); statusTitle.textContent = "你抵达了回声尽头"; statusCopy.textContent = "记录完成 · R 重新进入"; }
+      statusEl.classList.add("visible");
+    }
+
+    function updatePlayer(delta) {
+      const dx = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0);
+      const dy = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
+      if (!dx && !dy) return;
+      const length = Math.hypot(dx, dy);
+      const speed = Math.min(width, height) * 0.245;
+      move(player, (dx / length) * speed * delta, (dy / length) * speed * delta);
+    }
+
+    function updateMonsters(delta, now) {
+      monsters.forEach(monster => {
+        if (monster.mode === "investigate" && monster.target) {
+          const dx = monster.target.x - monster.x, dy = monster.target.y - monster.y;
+          const length = Math.hypot(dx, dy);
+          if (length < 7) { monster.mode = "search"; monster.searchUntil = now + 2000; }
+          else { const speed = Math.min(width, height) * 0.104; move(monster, dx / length * speed * delta, dy / length * speed * delta); }
+        } else if (monster.mode === "search" && now > monster.searchUntil) { monster.mode = "idle"; monster.target = null; }
+        if (dist(player.x, player.y, monster.x, monster.y) < player.r + monster.r + 2) endGame("lost");
+      });
+    }
+
+    function update(delta, now) {
+      if (state === "playing") {
+        if (DEMO) { if (now - lastDemoAt > 2100) { emitPulse(); lastDemoAt = now; } }
+        else updatePlayer(delta);
+        pulses.forEach(pulse => { pulse.previousRadius = pulse.radius; pulse.radius += pulse.speed * delta; scanPulse(pulse, now); });
+        pulses = pulses.filter(pulse => pulse.radius < pulse.max);
+        updateMonsters(delta, now);
+        if (dist(player.x, player.y, exit.x, exit.y) < player.r + exit.r + 2) endGame("won");
+      }
+    }
+
+    function alphaUntil(until, now) { return clamp((until - now) / FADE_TIME, 0, 1); }
+    function drawWall(rect, alpha) {
+      if (alpha <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = Math.pow(alpha, 1.62) * .83;
+      ctx.strokeStyle = COLORS.white;
+      ctx.lineWidth = 1.15;
+      ctx.shadowColor = "rgba(255,255,255,.72)"; ctx.shadowBlur = 5;
+      ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+      ctx.restore();
+    }
+
+    function drawMonster(monster, now) {
+      const alpha = alphaUntil(monster.revealUntil, now);
+      if (alpha <= 0) return;
+      const jitter = monster.mode === "search" ? Math.sin(now * 0.028 + monster.phase) * 1.6 : 0;
+      const points = [[-12,0],[-8,-5],[-4,4],[0,-7],[4,6],[9,-3],[13,1]];
+      ctx.save();
+      ctx.translate(monster.x + jitter, monster.y);
+      ctx.globalAlpha = Math.pow(alpha, 0.72);
+      ctx.strokeStyle = "#d44349"; ctx.lineWidth = 1.45; ctx.lineJoin = "miter";
+      ctx.shadowColor = "rgba(161,42,48,.8)"; ctx.shadowBlur = 8;
+      ctx.beginPath(); points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
+      ctx.fillStyle = "#e95a5f"; ctx.shadowBlur = 5; ctx.beginPath(); ctx.arc(-2, -1, 1.1, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    function drawExit(now) {
+      const alpha = alphaUntil(exit.revealUntil, now);
+      if (alpha <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = Math.pow(alpha, .62);
+      const glow = ctx.createRadialGradient(exit.x, exit.y, 0, exit.x, exit.y, 22);
+      glow.addColorStop(0, "rgba(211,170,88,.82)"); glow.addColorStop(1, "rgba(211,170,88,0)");
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(exit.x, exit.y, 22, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#e3bf72"; ctx.shadowColor = "rgba(211,170,88,.9)"; ctx.shadowBlur = 11; ctx.beginPath(); ctx.arc(exit.x, exit.y, 3.3, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    function drawPlayer(now) {
+      const exposure = clamp((player.exposedUntil - now) / 450, 0, 1);
+      ctx.save();
+      if (exposure > 0) {
+        const halo = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, 20);
+        halo.addColorStop(0, `rgba(161,42,48,${exposure * .24})`); halo.addColorStop(1, "rgba(161,42,48,0)");
+        ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(player.x, player.y, 20, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = COLORS.white; ctx.shadowColor = "rgba(255,255,255,.95)"; ctx.shadowBlur = 9;
+      ctx.beginPath(); ctx.arc(player.x, player.y, player.r * .62, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    function drawPulse(pulse) {
+      const progress = pulse.radius / pulse.max;
+      ctx.save();
+      ctx.globalAlpha = (1 - progress) * .73;
+      ctx.strokeStyle = COLORS.white; ctx.lineWidth = 1;
+      ctx.shadowColor = "rgba(255,255,255,.34)"; ctx.shadowBlur = 4;
+      ctx.beginPath(); ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+
+    function render(now) {
+      ctx.clearRect(0, 0, width, height);
+      const exposed = now < player.exposedUntil;
+      signalEl.textContent = exposed ? "暴露已记录" : "波段：静默";
+      signalEl.classList.toggle("hot", exposed);
+      pulses.forEach(drawPulse);
+      const screenWalls = walls();
+      screenWalls.forEach((wall, index) => drawWall(wall, alphaUntil(reveal[index], now)));
+      drawExit(now);
+      monsters.forEach(monster => drawMonster(monster, now));
+      drawPlayer(now);
+    }
+
+    function frame(now) {
+      const delta = Math.min(0.035, (now - lastTime) / 1000);
+      lastTime = now;
+      update(delta, now);
+      render(now);
+      requestAnimationFrame(frame);
+    }
+
+    addEventListener("keydown", event => {
+      const key = event.key.toLowerCase();
+      if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) { keys[key] = true; event.preventDefault(); }
+      if (key === "r") reset();
+    });
+    addEventListener("keyup", event => { keys[event.key.toLowerCase()] = false; });
+    addEventListener("pointerdown", event => { if (event.button === 0) emitPulse(); });
+    addEventListener("resize", resize);
+
+    resize();
+    reset();
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
