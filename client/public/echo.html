@@ -13,16 +13,22 @@
     body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
     #game-canvas { display: block; width: 100vw; height: 100vh; background: #000; cursor: crosshair; touch-action: none; }
     .hud { position: fixed; z-index: 2; pointer-events: none; user-select: none; }
-    #brand { top: 16px; left: 20px; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.53); font-size: 10px; letter-spacing: .23em; text-transform: uppercase; }
-    #brand .mark-wrap { position: relative; display: block; width: 27px; height: 27px; }
-    #brand img, #brand .sonar-mark { position: absolute; inset: 0; width: 27px; height: 27px; display: block; object-fit: contain; }
+    #brand { top: 16px; left: 20px; display: flex; align-items: center; gap: 11px; color: rgba(255,255,255,.53); font-size: 10px; letter-spacing: .26em; text-transform: uppercase; }
+    #brand .mark-wrap { position: relative; display: block; width: 30px; height: 30px; }
+    #brand img, #brand .sonar-mark { position: absolute; inset: 0; width: 30px; height: 30px; display: block; object-fit: contain; }
     #brand img { z-index: 1; opacity: 1; filter: contrast(1.22) brightness(1.16); }
     #brand .sonar-mark { z-index: 0; overflow: visible; }
     #brand .sonar-mark path { fill: none; stroke: rgba(246,246,242,.9); stroke-width: 1.15; }
     #brand .sonar-mark circle { fill: #f6f6f2; }
     #brand .sonar-mark line { stroke: rgba(161,42,48,.75); stroke-width: 1.15; }
     #brand .wordmark { display: grid; gap: 2px; }
-    #brand .wordmark small { color: rgba(255,255,255,.26); font-size: 7px; letter-spacing: .16em; }
+    #brand .wordmark small { color: rgba(255,255,255,.26); font-size: 7px; letter-spacing: .19em; }
+    #progress { top: 82px; left: 20px; display: grid; gap: 5px; color: rgba(255,255,255,.38); font-size: 8px; letter-spacing: .15em; }
+    #progress strong { color: rgba(255,255,255,.72); font-size: 9px; font-weight: 400; letter-spacing: .19em; }
+    #sector-pips { display: flex; gap: 5px; align-items: center; }
+    #sector-pips i { display: block; width: 15px; height: 1px; background: rgba(255,255,255,.16); }
+    #sector-pips i.active { background: rgba(246,246,242,.8); box-shadow: 0 0 5px rgba(255,255,255,.42); }
+    #sector-pips i.done { background: rgba(211,170,88,.54); }
     #usage { top: 20px; right: 24px; color: rgba(255,255,255,.49); text-align: right; font-size: 9px; line-height: 1.65; letter-spacing: .16em; }
     #usage strong { display: block; color: rgba(255,255,255,.84); font-size: 14px; font-weight: 400; letter-spacing: .22em; }
     #signal-state { top: 61px; right: 24px; color: rgba(255,255,255,.23); text-align: right; font-size: 8px; letter-spacing: .14em; transition: color .16s ease; }
@@ -34,17 +40,19 @@
     #hint { left: 20px; bottom: 18px; color: rgba(255,255,255,.28); font-size: 8px; letter-spacing: .13em; line-height: 2.05; transition: opacity .65s ease; }
     #status { position: fixed; inset: 0; z-index: 3; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity .3s ease; }
     #status.visible { opacity: 1; }
+    #status.interlevel { pointer-events: auto; cursor: crosshair; }
     #status .message { transform: translateY(-3vh); text-align: center; color: #f2f2f0; text-shadow: 0 0 18px rgba(255,255,255,.19); }
     #status .message.danger { color: #d44349; text-shadow: 0 0 22px rgba(161,42,48,.42); }
     #status h1 { margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5vw, 66px); font-weight: 400; letter-spacing: .07em; }
     #status p { margin: 0; color: rgba(255,255,255,.46); font-size: 10px; letter-spacing: .15em; }
-    @media (max-width: 560px) { #brand { top: 11px; left: 14px; } #usage { top: 14px; right: 14px; } #signal-state { top: 51px; right: 14px; } #calibration { top: 50px; left: 14px; } #hint { left: 14px; bottom: 13px; font-size: 8px; } #brand .wordmark { display: none; } }
+    @media (max-width: 560px) { #brand { top: 11px; left: 14px; } #progress { top: 70px; left: 14px; } #usage { top: 14px; right: 14px; } #signal-state { top: 51px; right: 14px; } #calibration { top: 50px; left: 14px; } #hint { left: 14px; bottom: 13px; font-size: 8px; } #brand .wordmark { display: none; } }
     @media (prefers-reduced-motion: reduce) { #hint, #status { transition: none; } }
   </style>
 </head>
 <body>
   <canvas id="game-canvas" aria-label="回声 Sonar 游戏画布"></canvas>
-  <div id="brand" class="hud"><span class="mark-wrap" aria-hidden="true"><svg class="sonar-mark" viewBox="0 0 24 24"><path d="M12 3 A9 9 0 1 0 20.5 8.9"/><circle cx="12" cy="12" r="1.55"/><line x1="19.2" y1="4.8" x2="21.4" y2="2.6"/></svg><img src="/manus-storage/sonar-logo_9e3805c0.png" alt="" onerror="this.style.display='none'" /></span><span class="wordmark">回声 / SONAR<small>SECTOR 01 · VOID MAP</small></span></div>
+  <div id="brand" class="hud"><span class="mark-wrap" aria-hidden="true"><svg class="sonar-mark" viewBox="0 0 24 24"><path d="M12 3 A9 9 0 1 0 20.5 8.9"/><circle cx="12" cy="12" r="1.55"/><line x1="19.2" y1="4.8" x2="21.4" y2="2.6"/></svg><img src="/manus-storage/sonar-logo_9e3805c0.png" alt="" onerror="this.style.display='none'" /></span><span class="wordmark">回声 // SONAR<small>ACOUSTIC RECORD // 01</small></span></div>
+  <div id="progress" class="hud"><strong id="sector-label">扇区 01 / 03</strong><div id="sector-pips" aria-hidden="true"><i class="active"></i><i></i><i></i></div><span id="sector-name">静水</span></div>
   <div id="usage" class="hud">声呐使用次数<strong id="count">00</strong></div>
   <div id="signal-state" class="hud">波段：静默</div>
   <div id="calibration" class="hud" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
@@ -58,6 +66,9 @@
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
     const countEl = document.getElementById("count");
+    const sectorLabelEl = document.getElementById("sector-label");
+    const sectorNameEl = document.getElementById("sector-name");
+    const sectorPipsEl = document.getElementById("sector-pips");
     const hintEl = document.getElementById("hint");
     const signalEl = document.getElementById("signal-state");
     const statusEl = document.getElementById("status");
@@ -66,46 +77,65 @@
 
     const COLORS = { white: "#f6f6f2", red: "#a12a30", gold: "#d3aa58" };
     const FADE_TIME = 1500;
-    const WALLS = [
-      [0.035, 0.055, 0.93, 0.010], [0.035, 0.935, 0.93, 0.010],
-      [0.035, 0.055, 0.010, 0.89], [0.955, 0.055, 0.010, 0.89],
-      [0.160, 0.100, 0.008, 0.570], [0.160, 0.480, 0.180, 0.009],
-      [0.310, 0.220, 0.008, 0.500], [0.310, 0.220, 0.170, 0.009],
-      [0.480, 0.100, 0.008, 0.440], [0.480, 0.540, 0.220, 0.009],
-      [0.700, 0.260, 0.008, 0.550], [0.700, 0.260, 0.200, 0.009],
-      [0.860, 0.110, 0.008, 0.450], [0.580, 0.750, 0.280, 0.009],
-      [0.480, 0.750, 0.008, 0.140], [0.160, 0.750, 0.180, 0.009],
-      [0.095, 0.790, 0.115, 0.009], [0.790, 0.610, 0.125, 0.009]
+    const BORDER = [[0.035, 0.055, 0.93, 0.010], [0.035, 0.935, 0.93, 0.010], [0.035, 0.055, 0.010, 0.89], [0.955, 0.055, 0.010, 0.89]];
+    const LEVELS = [
+      {
+        sector: "01", title: "静水", fade: 1800, pulseSpeed: 0.72, monsterSpeed: 0.078,
+        player: [0.090, 0.865], exit: [0.922, 0.135], monsters: [[0.395, 0.675]],
+        walls: [...BORDER, [0.160, 0.100, 0.008, 0.570], [0.160, 0.480, 0.180, 0.009], [0.310, 0.220, 0.008, 0.500], [0.310, 0.220, 0.170, 0.009], [0.480, 0.100, 0.008, 0.440], [0.480, 0.540, 0.220, 0.009], [0.700, 0.260, 0.008, 0.550], [0.700, 0.260, 0.200, 0.009], [0.860, 0.110, 0.008, 0.450], [0.580, 0.750, 0.280, 0.009], [0.480, 0.750, 0.008, 0.140], [0.160, 0.750, 0.180, 0.009], [0.095, 0.790, 0.115, 0.009], [0.790, 0.610, 0.125, 0.009]]
+      },
+      {
+        sector: "02", title: "逆流", fade: 1250, pulseSpeed: 0.69, monsterSpeed: 0.097,
+        player: [0.090, 0.140], exit: [0.920, 0.865], monsters: [[0.270, 0.660], [0.560, 0.380]],
+        walls: [...BORDER, [0.190, 0.120, 0.008, 0.580], [0.190, 0.700, 0.180, 0.009], [0.370, 0.245, 0.008, 0.600], [0.370, 0.245, 0.210, 0.009], [0.570, 0.090, 0.008, 0.510], [0.570, 0.600, 0.180, 0.009], [0.750, 0.300, 0.008, 0.570], [0.750, 0.300, 0.150, 0.009], [0.090, 0.360, 0.160, 0.009], [0.440, 0.760, 0.170, 0.009], [0.845, 0.645, 0.090, 0.009]]
+      },
+      {
+        sector: "03", title: "深井", fade: 900, pulseSpeed: 0.65, monsterSpeed: 0.118,
+        player: [0.090, 0.865], exit: [0.915, 0.130], monsters: [[0.240, 0.265], [0.610, 0.360], [0.775, 0.690]],
+        walls: [...BORDER, [0.140, 0.120, 0.008, 0.620], [0.140, 0.350, 0.150, 0.009], [0.290, 0.210, 0.008, 0.620], [0.290, 0.210, 0.160, 0.009], [0.450, 0.100, 0.008, 0.500], [0.450, 0.600, 0.190, 0.009], [0.640, 0.250, 0.008, 0.590], [0.640, 0.250, 0.210, 0.009], [0.840, 0.100, 0.008, 0.460], [0.710, 0.740, 0.160, 0.009], [0.455, 0.785, 0.008, 0.105], [0.120, 0.790, 0.130, 0.009], [0.815, 0.610, 0.100, 0.009]]
+      }
     ];
-    const SPAWNS = [[0.245, 0.265], [0.395, 0.675], [0.610, 0.360], [0.775, 0.690], [0.905, 0.705]];
     const DEMO = new URLSearchParams(location.search).has("demo");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
-    let player, exit, monsters, pulses, reveal, keys, state, sonarCount, audio, lastEchoAt, lastDemoAt;
+    let player, exit, monsters, pulses, reveal, keys, state, sonarCount, audio, lastEchoAt, lastDemoAt, levelIndex = 0;
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
-    function walls() { return WALLS.map(([x, y, w, h]) => ({ x: x * width, y: y * height, w: w * width, h: h * height })); }
+    function currentLevel() { return LEVELS[levelIndex]; }
+    function walls() { return currentLevel().walls.map(([x, y, w, h]) => ({ x: x * width, y: y * height, w: w * width, h: h * height })); }
     function pointAt([x, y]) { return { x: x * width, y: y * height }; }
-    function shuffle(list) { return list.slice().sort(() => Math.random() - 0.5); }
+    function updateProgress() {
+      const level = currentLevel();
+      sectorLabelEl.textContent = `扇区 ${level.sector} / ${String(LEVELS.length).padStart(2, "0")}`;
+      sectorNameEl.textContent = level.title;
+      sectorPipsEl.querySelectorAll("i").forEach((pip, index) => pip.className = index < levelIndex ? "done" : index === levelIndex ? "active" : "");
+      countEl.textContent = String(sonarCount).padStart(2, "0");
+    }
 
-    function reset() {
-      player = { ...pointAt([0.090, 0.865]), r: 5.2, exposedUntil: 0 };
-      exit = { ...pointAt([0.922, 0.135]), r: 7, revealUntil: 0 };
-      monsters = shuffle(SPAWNS).slice(0, 2 + Math.floor(Math.random() * 2)).map((spawn, index) => ({
-        ...pointAt(spawn), r: 10, id: index, revealUntil: 0, target: null, mode: "idle", searchUntil: 0, phase: Math.random() * Math.PI * 2
+    function loadLevel(index, resetCount = false) {
+      levelIndex = clamp(index, 0, LEVELS.length - 1);
+      const level = currentLevel();
+      player = { ...pointAt(level.player), r: 5.2, exposedUntil: 0 };
+      exit = { ...pointAt(level.exit), r: 7, revealUntil: 0 };
+      monsters = level.monsters.map((spawn, monsterIndex) => ({
+        ...pointAt(spawn), r: 10, id: monsterIndex, revealUntil: 0, target: null, mode: "idle", searchUntil: 0, phase: Math.random() * Math.PI * 2
       }));
       pulses = [];
-      reveal = new Array(WALLS.length).fill(0);
+      reveal = new Array(level.walls.length).fill(0);
       keys = Object.create(null);
       state = "playing";
-      sonarCount = 0;
+      if (resetCount) sonarCount = 0;
       lastEchoAt = 0;
       lastDemoAt = performance.now() - 1800;
-      countEl.textContent = "00";
+      updateProgress();
       statusEl.classList.remove("visible");
+      statusEl.classList.remove("interlevel");
       hintEl.style.opacity = "1";
     }
+
+    function startRun() { loadLevel(0, true); }
+    function advanceLevel() { if (state === "interlevel" && levelIndex < LEVELS.length - 1) { tone(165, 0.24, 0.04, "sine", 270); loadLevel(levelIndex + 1); } }
 
     function resize() {
       const oldWidth = width || innerWidth;
@@ -183,7 +213,7 @@
       const now = performance.now();
       ensureAudio();
       sonarSound();
-      pulses.push({ id: ++pulseId, x: player.x, y: player.y, radius: 0, previousRadius: 0, max: Math.hypot(width, height) * 0.78, speed: Math.min(width, height) * 0.69, hitWalls: new Set(), hitMonsters: new Set(), hitExit: false });
+      pulses.push({ id: ++pulseId, x: player.x, y: player.y, radius: 0, previousRadius: 0, max: Math.hypot(width, height) * 0.78, speed: Math.min(width, height) * currentLevel().pulseSpeed, hitWalls: new Set(), hitMonsters: new Set(), hitExit: false });
       player.exposedUntil = now + 450;
       sonarCount += 1;
       countEl.textContent = String(sonarCount).padStart(2, "0");
@@ -201,29 +231,45 @@
       const screenWalls = walls();
       screenWalls.forEach((wall, index) => {
         if (!pulse.hitWalls.has(index) && pulseHitsWall(pulse, wall)) {
-          pulse.hitWalls.add(index); reveal[index] = now + FADE_TIME;
+          pulse.hitWalls.add(index); reveal[index] = now + currentLevel().fade;
           if (now - lastEchoAt > 76) { echoSound("wall"); lastEchoAt = now; }
         }
       });
       monsters.forEach(monster => {
         const distanceToMonster = dist(pulse.x, pulse.y, monster.x, monster.y);
         if (!pulse.hitMonsters.has(monster.id) && distanceToMonster > pulse.previousRadius - monster.r && distanceToMonster <= pulse.radius + monster.r) {
-          pulse.hitMonsters.add(monster.id); monster.revealUntil = now + FADE_TIME;
+          pulse.hitMonsters.add(monster.id); monster.revealUntil = now + currentLevel().fade;
           monster.target = { x: pulse.x, y: pulse.y }; monster.mode = "investigate";
           if (now - lastEchoAt > 76) { echoSound("monster"); lastEchoAt = now; }
         }
       });
       const distanceToExit = dist(pulse.x, pulse.y, exit.x, exit.y);
       if (!pulse.hitExit && distanceToExit > pulse.previousRadius - exit.r && distanceToExit <= pulse.radius + exit.r) {
-        pulse.hitExit = true; exit.revealUntil = now + FADE_TIME; echoSound("wall");
+        pulse.hitExit = true; exit.revealUntil = now + currentLevel().fade * 1.8; echoSound("wall");
       }
     }
 
     function endGame(result) {
       if (state !== "playing") return;
       state = result;
-      if (result === "lost") { failureSound(); statusEl.querySelector(".message").classList.add("danger"); statusTitle.textContent = "你被吞噬了"; statusCopy.textContent = "重置指令待命 · R"; }
-      else { statusEl.querySelector(".message").classList.remove("danger"); tone(220, 0.42, 0.05, "sine", 340); statusTitle.textContent = "你抵达了回声尽头"; statusCopy.textContent = "记录完成 · R 重新进入"; }
+      if (result === "lost") {
+        failureSound();
+        statusEl.querySelector(".message").classList.add("danger");
+        statusTitle.textContent = "你被吞噬了";
+        statusCopy.textContent = `扇区 ${currentLevel().sector} 重置指令待命 · R`;
+      } else {
+        statusEl.querySelector(".message").classList.remove("danger");
+        tone(220, 0.42, 0.05, "sine", 340);
+        if (levelIndex === LEVELS.length - 1) {
+          statusTitle.textContent = "回声已抵达尽头";
+          statusCopy.textContent = `完整记录：${LEVELS.length} 个扇区 · 声呐 ${String(sonarCount).padStart(2, "0")} 次 · R 重新进入`;
+        } else {
+          state = "interlevel";
+          statusEl.classList.add("interlevel");
+          statusTitle.textContent = `扇区 ${currentLevel().sector} 已静默`;
+          statusCopy.textContent = `下一记录：扇区 ${LEVELS[levelIndex + 1].sector} · ENTER / 左键继续`;
+        }
+      }
       statusEl.classList.add("visible");
     }
 
@@ -242,7 +288,7 @@
           const dx = monster.target.x - monster.x, dy = monster.target.y - monster.y;
           const length = Math.hypot(dx, dy);
           if (length < 7) { monster.mode = "search"; monster.searchUntil = now + 2000; }
-          else { const speed = Math.min(width, height) * 0.104; move(monster, dx / length * speed * delta, dy / length * speed * delta); }
+          else { const speed = Math.min(width, height) * currentLevel().monsterSpeed; move(monster, dx / length * speed * delta, dy / length * speed * delta); }
         } else if (monster.mode === "search" && now > monster.searchUntil) { monster.mode = "idle"; monster.target = null; }
         if (dist(player.x, player.y, monster.x, monster.y) < player.r + monster.r + 2) endGame("lost");
       });
@@ -259,15 +305,28 @@
       }
     }
 
-    function alphaUntil(until, now) { return clamp((until - now) / FADE_TIME, 0, 1); }
+    function alphaUntil(until, now) { return clamp((until - now) / currentLevel().fade, 0, 1); }
     function drawWall(rect, alpha) {
       if (alpha <= 0) return;
       ctx.save();
-      ctx.globalAlpha = Math.pow(alpha, 1.62) * .83;
+      ctx.globalAlpha = Math.pow(alpha, 1.85) * .78;
       ctx.strokeStyle = COLORS.white;
-      ctx.lineWidth = 1.15;
+      ctx.lineWidth = 1.05;
       ctx.shadowColor = "rgba(255,255,255,.72)"; ctx.shadowBlur = 5;
-      ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+      const horizontal = rect.w >= rect.h;
+      const length = horizontal ? rect.w : rect.h;
+      const minor = horizontal ? rect.h * .5 : rect.w * .5;
+      const originX = rect.x + (horizontal ? 0 : rect.w * .5);
+      const originY = rect.y + (horizontal ? rect.h * .5 : 0);
+      const cuts = [[.08, .15], [.39, .34], [.83, .09]];
+      ctx.beginPath();
+      cuts.forEach(([offset, span]) => {
+        const from = length * offset;
+        const to = Math.min(length * (offset + span), length);
+        if (horizontal) { ctx.moveTo(originX + from, originY + minor * Math.sin(offset * 21)); ctx.lineTo(originX + to, originY - minor * Math.sin(offset * 19)); }
+        else { ctx.moveTo(originX + minor * Math.sin(offset * 19), originY + from); ctx.lineTo(originX - minor * Math.sin(offset * 21), originY + to); }
+      });
+      ctx.stroke();
       ctx.restore();
     }
 
@@ -314,9 +373,9 @@
     function drawPulse(pulse) {
       const progress = pulse.radius / pulse.max;
       ctx.save();
-      ctx.globalAlpha = (1 - progress) * .73;
-      ctx.strokeStyle = COLORS.white; ctx.lineWidth = 1;
-      ctx.shadowColor = "rgba(255,255,255,.34)"; ctx.shadowBlur = 4;
+      ctx.globalAlpha = (1 - progress) * .91;
+      ctx.strokeStyle = COLORS.white; ctx.lineWidth = 1.28;
+      ctx.shadowColor = "rgba(255,255,255,.57)"; ctx.shadowBlur = 7;
       ctx.beginPath(); ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2); ctx.stroke();
       ctx.restore();
     }
@@ -345,14 +404,15 @@
     addEventListener("keydown", event => {
       const key = event.key.toLowerCase();
       if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) { keys[key] = true; event.preventDefault(); }
-      if (key === "r") reset();
+      if (key === "r") { if (state === "won") startRun(); else loadLevel(levelIndex); }
+      if (key === "enter") advanceLevel();
     });
     addEventListener("keyup", event => { keys[event.key.toLowerCase()] = false; });
-    addEventListener("pointerdown", event => { if (event.button === 0) emitPulse(); });
+    addEventListener("pointerdown", event => { if (event.button === 0) { if (state === "interlevel") advanceLevel(); else emitPulse(); } });
     addEventListener("resize", resize);
 
     resize();
-    reset();
+    startRun();
     requestAnimationFrame(frame);
   })();
   </script>
