@@ -47,6 +47,9 @@
     #exit-state.unlocked { color: rgba(211,170,88,.72); }
     #log-line { left: 20px; bottom: 52px; max-width: min(56vw, 510px); color: rgba(227,191,114,.64); font-size: 9px; letter-spacing: .12em; line-height: 1.8; transition: opacity .25s ease; }
     #hint { left: 20px; bottom: 18px; color: rgba(255,255,255,.28); font-size: 8px; letter-spacing: .13em; line-height: 2.05; transition: opacity .65s ease; }
+    #coop-channel { left:20px; bottom:112px; display:none; color:rgba(246,246,242,.34); font-size:8px; letter-spacing:.15em; line-height:1.8; }
+    #coop-channel.active { display:block; }
+    #coop-channel .down { color:rgba(212,67,73,.86); }
     #settings-trigger { position:fixed; z-index:3; top:146px; right:24px; border:0; padding:0; background:transparent; color:rgba(246,246,242,.31); font:inherit; font-size:8px; letter-spacing:.15em; cursor:pointer; transition:color .16s ease; }
     #settings-trigger:hover { color:rgba(211,170,88,.86); }
     #status { position: fixed; inset: 0; z-index: 4; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity .3s ease; background: rgba(0,0,0,.14); }
@@ -123,6 +126,7 @@
       #resources { top: 52px; right: 14px; } #objective { right: 14px; bottom: 13px; }
       #log-line { left: 14px; bottom: 52px; max-width: 54vw; font-size: 8px; }
       #hint { left: 14px; bottom: 13px; max-width: 160px; font-size: 8px; }
+      #coop-channel { left:14px; bottom:102px; max-width:156px; }
       #settings-trigger { top:134px; right:14px; }
       .settings-panel { margin-top:10vh; transform:none; }
     }
@@ -139,6 +143,7 @@
   <div id="objective" class="hud">章节记录<strong id="record-count">00 / 00</strong><span id="exit-state">出口封存</span></div>
   <div id="log-line" class="hud"></div>
   <div id="hint" class="hud">输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）</div>
+  <div id="coop-channel" class="hud">双信道 // 离线</div>
   <button id="settings-trigger" type="button">监听设置 // ESC</button>
   <div id="status"><div class="message"><p id="status-eyebrow" class="eyebrow"></p><h1 id="status-title"></h1><p id="status-copy"></p></div></div>
   <div id="signal-glitch" aria-hidden="true"></div>
@@ -169,6 +174,7 @@
     const exitStateEl = document.getElementById("exit-state");
     const logEl = document.getElementById("log-line");
     const hintEl = document.getElementById("hint");
+    const coopChannelEl = document.getElementById("coop-channel");
     const statusEl = document.getElementById("status");
     const statusEyebrow = document.getElementById("status-eyebrow");
     const statusTitle = document.getElementById("status-title");
@@ -250,13 +256,14 @@
     const PREVIEW_SETTINGS = QUERY.has("settings");
     const PREVIEW_THREAT = QUERY.has("threat");
     const PREVIEW_SILENCE = QUERY.has("silence");
+    const PREVIEW_COOP = QUERY.has("coop");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
-    let chapterIndex = 0, state = "prologue-title", player, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue, ambientCue, audioGraph;
+    let chapterIndex = 0, state = "prologue-title", player, player2, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue, ambientCue, audioGraph;
     let sonarCount = 0, runDeaths = 0, charge = 3, nextChargeAt = 0, alert = 0, lastEchoAt = 0, logUntil = 0, huntUntil = 0, lastHuntTargetAt = 0, lastDemoAt = 0;
     let activeChapter = -1, chapterFailures = 0, chapterStartSonar = 0, chapterIntegrity = 100;
     let archiveStore = (() => { try { const legacy = localStorage.getItem("sonar-ar01") === "1"; const stored = JSON.parse(localStorage.getItem("sonar-archives") || "{}"); if (legacy && !stored["AR-01"]) stored["AR-01"] = 100; return stored; } catch { return {}; } })();
-    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", settingsReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null, threatLevel = 0, shelterLatched = false, silencePulseUntil = 0, calibrationTimer = 0;
+    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", settingsReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null, threatLevel = 0, shelterLatched = false, silencePulseUntil = 0, calibrationTimer = 0, coOp = false, analysisCharge = 2, analysisNextAt = 0;
     let bestStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-best-integrity") || "{}"); } catch { return {}; } })();
     let badgeStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-chapter-badges") || "{}"); } catch { return {}; } })();
     let cueStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-cue-evidence") || "{}"); } catch { return {}; } })();
@@ -269,7 +276,9 @@
     function currentChapter() { return CHAPTERS[chapterIndex]; }
     function pointAt([x, y]) { return { x:x * width, y:y * height }; }
     function screenWalls() { return currentChapter().walls.map(([x,y,w,h]) => ({ x:x * width, y:y * height, w:w * width, h:h * height })); }
-    function isSheltered() { return shelters.some(shelter => dist(player.x, player.y, shelter.x, shelter.y) < shelter.r); }
+    function isSheltered(entity = player) { return Boolean(entity) && shelters.some(shelter => dist(entity.x, entity.y, shelter.x, shelter.y) < shelter.r); }
+    function teamSheltered() { return coOp ? isSheltered(player) && isSheltered(player2) : isSheltered(player); }
+    function isDowned(entity) { return Boolean(entity?.downedUntil); }
     function showLog(text, duration = 3600) { logEl.textContent = text; logUntil = performance.now() + duration; }
     function makeNoiseBuffer(seconds = 2.4) {
       const length = Math.floor(audio.sampleRate * seconds), buffer = audio.createBuffer(1,length,audio.sampleRate), data = buffer.getChannelData(0); let last = 0;
@@ -311,8 +320,8 @@
     }
     function updateMonsterSpatial(now=performance.now()) {
       if(!audioGraph?.monsterVoices?.length||!player) return;
-      const active=state==="playing", sheltered=active&&isSheltered(), hunt=active&&huntUntil>now, scale=Math.min(width,height), time=audio.currentTime;
-      audioGraph.monsterVoices.forEach(voice=>{ const monster=voice.monster, signature=voice.signature, distance=dist(player.x,player.y,monster.x,monster.y), near=clamp(1-distance/(scale*.58),0,1), lateral=clamp((monster.x-player.x)/(scale*.34),-1,1), intensity=active&&!sheltered?(near*near*(hunt?1.35:1)):.0; voice.gain.gain.setTargetAtTime(.0001+intensity*.032*signature.gain,time,.11); voice.panner.pan.setTargetAtTime(lateral,time,.12); voice.filter.frequency.setTargetAtTime(signature.filter+near*(voice.signatureKey==="confirm"?1320:820)+(hunt?230:0),time,.16); voice.filter.Q.setTargetAtTime(signature.q+near*4.8,time,.16); voice.osc.frequency.setTargetAtTime(signature.base+near*(voice.signatureKey==="closure"?42:31)+(hunt?12:0),time,.20); });
+      const active=state==="playing", sheltered=active&&teamSheltered(), hunt=active&&huntUntil>now, scale=Math.min(width,height), time=audio.currentTime, listener=coOp&&player2?{x:(player.x+player2.x)*.5,y:(player.y+player2.y)*.5}:player;
+      audioGraph.monsterVoices.forEach(voice=>{ const monster=voice.monster, signature=voice.signature, distance=dist(listener.x,listener.y,monster.x,monster.y), near=clamp(1-distance/(scale*.58),0,1), lateral=clamp((monster.x-listener.x)/(scale*.34),-1,1), intensity=active&&!sheltered?(near*near*(hunt?1.35:1)):.0; voice.gain.gain.setTargetAtTime(.0001+intensity*.032*signature.gain,time,.11); voice.panner.pan.setTargetAtTime(lateral,time,.12); voice.filter.frequency.setTargetAtTime(signature.filter+near*(voice.signatureKey==="confirm"?1320:820)+(hunt?230:0),time,.16); voice.filter.Q.setTargetAtTime(signature.q+near*4.8,time,.16); voice.osc.frequency.setTargetAtTime(signature.base+near*(voice.signatureKey==="closure"?42:31)+(hunt?12:0),time,.20); });
     }
     function noiseBurst(duration=.7,volume=.034,frequency=1200,q=.7,pan=0) {
       if(!audio) return;
@@ -461,6 +470,8 @@
       recordCountEl.textContent = `${String(records.filter(record => record.collected).length).padStart(2,"0")} / ${String(records.length).padStart(2,"0")}`;
       exitStateEl.textContent = exit.unlocked ? "出口已解锁" : "出口封存";
       exitStateEl.classList.toggle("unlocked", exit.unlocked);
+      if (coOp) { const p1=isDowned(player)?"倒地":"在线", p2=isDowned(player2)?"倒地":"在线"; coopChannelEl.classList.add("active"); coopChannelEl.innerHTML=`双信道 // P1 ${p1}<br><span class="${isDowned(player2)?"down":""}">P2 ${p2} · 解析 ${String(analysisCharge).padStart(2,"0")}</span>`; }
+      else coopChannelEl.classList.remove("active");
       if (huntUntil > now) { const seconds = Math.ceil((huntUntil - now) / 1000); timerEl.textContent = `门闭合 // ${String(seconds).padStart(2,"0")}s`; timerEl.classList.add("hot"); }
       else { timerEl.textContent = bait && bait.ready ? `诱饵 // ${bait.pulsesLeft}` : ""; timerEl.classList.remove("hot"); }
       logEl.style.opacity = now < logUntil ? "1" : "0";
@@ -480,6 +491,7 @@
       chapterIndex = 0;
       shelterLatched = false; silencePulseUntil = 0;
       player = { x:width * .50, y:height * .73, r:5.5, exposedUntil:0 };
+      player2 = null; coOp = false;
       exit = { x:-100, y:-100, r:0, revealUntil:0, unlocked:false };
       monsters = []; records = []; shelters = []; pulses = []; traces = []; reveal = []; keys = Object.create(null); bait = null;
       prologue = { anchor:{ x:width * .50, y:height * .32, r:10 }, phase:"title", wakeUntil:0, anomalyUntil:0, transitionAt:0, briefAt:0, signalLine:SIGNAL_RECORDS[Math.floor(Math.random() * SIGNAL_RECORDS.length)] };
@@ -493,7 +505,7 @@
       hintEl.style.opacity = "0";
       showLog("失落信号 // 等待接通。", 4200);
       if (audioGraph) refreshMonsterVoices();
-      showStatus("brief", "失落信号 // 00", "回声", "拾取失落信号 · ENTER / 左键 · ESC 监听设置");
+      showStatus("brief", "失落信号 // 00", "回声", "ENTER / 左键 单人接通 · 2 双信道协议 · ESC 监听设置");
     }
     function beginPrologue() {
       if (state !== "prologue-title") return;
@@ -570,6 +582,7 @@
       finalEnding = null;
       shelterLatched = false; silencePulseUntil = 0;
       player = { ...pointAt(chapter.player), r:5.5, exposedUntil:0 };
+      player2 = coOp ? { x:player.x + Math.min(width,height)*.028, y:player.y, r:5.2, exposedUntil:0, downedUntil:0 } : null;
       exit = { ...pointAt(chapter.exit), r:7, revealUntil:0, unlocked:false };
       ambientCue = { ...pointAt(chapter.cue.p), type:chapter.cue.type, line:chapter.cue.line, r:Math.min(width,height)*.072, triggered:false };
       monsters = chapter.monsters.map((monster, id) => ({ ...pointAt(monster.p), id, r:10, route:monster.route.map(pointAt), routeIndex:0, speed:monster.speed, target:null, mode:"patrol", searchUntil:0, revealUntil:0, phase:Math.random() * Math.PI * 2 }));
@@ -577,12 +590,12 @@
       records = chapter.records.map((record, id) => ({ ...pointAt(record.p), id, r:7, line:record.line, grant:record.grant, trigger:record.trigger, collected:false, revealUntil:0 }));
       shelters = chapter.shelters.map(([x,y,r]) => ({ x:x * width, y:y * height, r:r * Math.min(width,height), revealUntil:0 }));
       pulses = []; traces = []; reveal = new Array(chapter.walls.length).fill(0); keys = Object.create(null); bait = null;
-      charge = 3; nextChargeAt = 0; alert = 0; huntUntil = 0; lastHuntTargetAt = 0; lastEchoAt = 0; lastDemoAt = performance.now() - 1600;
+      charge = 3; analysisCharge = 2; analysisNextAt = 0; alert = 0; huntUntil = 0; lastHuntTargetAt = 0; lastEchoAt = 0; lastDemoAt = performance.now() - 1600;
       if (resetRun) { sonarCount = 0; runDeaths = 0; }
       if (activeChapter !== chapterIndex || resetRun) { chapterFailures = 0; chapterStartSonar = sonarCount; chapterIntegrity = 100; activeChapter = chapterIndex; }
       state = "brief";
       setGameplayHud(true);
-      hintEl.innerHTML = `输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）${Object.keys(archiveStore).length ? "<br>F // 设备档案" : ""}<br>M // 静音`;
+      hintEl.innerHTML = coOp ? `P1 // WASD · E 主声呐<br>P2 // 方向键 · / 解析脉冲<br>R // 邻近重连 · 两人共同撤离` : `输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）${Object.keys(archiveStore).length ? "<br>F // 设备档案" : ""}<br>M // 静音`;
       updateHud();
       showStatus("brief", `章节 ${chapter.id} // ${chapter.mood}`, chapter.title, `${chapter.subtitle}  ENTER / 左键开始`);
       showLog(`系统记录 // ${chapter.subtitle}`, 4200);
@@ -590,6 +603,7 @@
     function beginChapter() { if (state !== "brief") return; ensureAudio(); state = "playing"; hideStatus(); hintEl.style.opacity = "1"; showLog("目标载入 // 读取全部章节记录。", 2400); }
     function nextChapter() { if (state !== "interchapter") return; if (chapterIndex < CHAPTERS.length - 1) loadChapter(chapterIndex + 1); }
     function startNewRun() { loadPrologue(true); }
+    function startCoOp() { coOp=true; replayMode=false; loadChapter(0,true); showStatus("brief","双信道 // 本地协作","静水观测","P1 // WASD + E · P2 // 方向键 + / · 共同撤离 · ENTER / 左键开始"); showLog("双信道接通 // 仅解析脉冲可恢复记录。",4200); }
 
     function resize() {
       const oldWidth = width || innerWidth, oldHeight = height || innerHeight;
@@ -597,7 +611,7 @@
       canvas.width = Math.floor(width * dpr); canvas.height = Math.floor(height * dpr); canvas.style.width = width + "px"; canvas.style.height = height + "px"; ctx.setTransform(dpr,0,0,dpr,0,0);
       if (player) {
         const sx = width / oldWidth, sy = height / oldHeight;
-        [player,exit,...monsters,...records,...shelters].forEach(entity => { entity.x *= sx; entity.y *= sy; if (entity.route) entity.route.forEach(point => { point.x *= sx; point.y *= sy; }); if (entity.r && entity !== player && entity !== exit) entity.r *= Math.min(sx,sy); });
+        [player,player2,exit,...monsters,...records,...shelters].filter(Boolean).forEach(entity => { entity.x *= sx; entity.y *= sy; if (entity.route) entity.route.forEach(point => { point.x *= sx; point.y *= sy; }); if (entity.r && entity !== player && entity !== player2 && entity !== exit) entity.r *= Math.min(sx,sy); });
         pulses.forEach(pulse => { pulse.x *= sx; pulse.y *= sy; pulse.radius *= Math.min(sx,sy); });
         if (bait) { bait.x *= sx; bait.y *= sy; }
         if (ambientCue) { ambientCue.x *= sx; ambientCue.y *= sy; ambientCue.r *= Math.min(sx,sy); }
@@ -612,11 +626,19 @@
     function makePulse(x,y,type = "player") { return { id:++pulseId, x,y,type,radius:0,previousRadius:0,max:Math.hypot(width,height) * currentChapter().pulseRange,speed:Math.min(width,height) * currentChapter().pulseSpeed,hitWalls:new Set(),hitMonsters:new Set(),hitRecords:new Set(),hitShelters:new Set(),hitExit:false }; }
     function emitPulse() {
       if (state !== "playing") return;
+      if (isDowned(player)) return;
       ensureAudio();
       const now = performance.now();
       if (charge <= 0) { showLog("回响电荷尚未恢复。", 1500); return; }
       charge -= 1; if (!nextChargeAt) nextChargeAt = now + currentChapter().cooldown;
       alert = clamp(alert + .31, 0, 1); player.exposedUntil = now + 460; sonarCount += 1; pulses.push(makePulse(player.x,player.y)); sonarSound(); hintEl.style.opacity = "0"; updateHud(now);
+    }
+    function emitAnalysisPulse() {
+      if (state!=="playing"||!coOp||!player2||isDowned(player2)) return;
+      ensureAudio(); const now=performance.now();
+      if(analysisCharge<=0){showLog("解析通道 // 正在恢复。",1500);return;}
+      analysisCharge-=1; if(!analysisNextAt)analysisNextAt=now+1550;
+      const pulse=makePulse(player2.x,player2.y,"analysis"); pulse.max=Math.min(width,height)*.255; pulse.speed=Math.min(width,height)*.62; pulses.push(pulse); player2.exposedUntil=now+260; noiseBurst(.11,.009,1680,7,.12);tone(430,.18,.015,"sine",660,.08);showLog("解析脉冲 // 附近记录可恢复。",1700); updateHud(now);
     }
     function deployBait() {
       if (state !== "playing" || !records.some(record => record.grant === "bait" && record.collected) || bait) return;
@@ -628,13 +650,24 @@
     function setMonsterTarget(monster,x,y,now) { monster.target = {x,y}; monster.mode = "investigate"; monster.searchUntil = now + 1900; }
     function scanPulse(pulse, now) {
       const walls = screenWalls();
-      if (pulse.type === "player") {
+      if (pulse.type === "player" || pulse.type === "analysis") {
         walls.forEach((wall,index) => { if (!pulse.hitWalls.has(index) && sourceHitsRect(pulse,wall)) { pulse.hitWalls.add(index); reveal[index] = now + currentChapter().fade; if (now - lastEchoAt > 76) { echoSound("wall"); lastEchoAt = now; } } });
         shelters.forEach((shelter,index) => { const d = dist(pulse.x,pulse.y,shelter.x,shelter.y); if (!pulse.hitShelters.has(index) && d > pulse.previousRadius - shelter.r && d <= pulse.radius + shelter.r) { pulse.hitShelters.add(index); shelter.revealUntil = now + currentChapter().fade; } });
-        records.forEach(record => { const d = dist(pulse.x,pulse.y,record.x,record.y); if (!record.collected && !pulse.hitRecords.has(record.id) && d > pulse.previousRadius - record.r && d <= pulse.radius + record.r) { pulse.hitRecords.add(record.id); record.collected = true; record.revealUntil = now + currentChapter().fade * 1.4; recordSound(); showLog(record.line,4200); if (record.grant) showLog(`${record.line}  空格：部署回声诱饵。`,4600); if (record.trigger === "hunt") { huntUntil = now + currentChapter().huntDuration; huntSound(); showLog("记录 06 // 门正在收拢。撤离倒计时启动。",4600); } if (records.every(item => item.collected)) { exit.unlocked = true; exit.revealUntil = now + currentChapter().fade * 2; showLog(record.trigger ? "出口坐标已锁定。不要停下。" : "章节记录完整。出口坐标已恢复。",3500); } updateHud(now); } });
+        records.forEach(record => { const d = dist(pulse.x,pulse.y,record.x,record.y), canRecover=coOp?pulse.type==="analysis":pulse.type==="player"; if (canRecover&&!record.collected && !pulse.hitRecords.has(record.id) && d > pulse.previousRadius - record.r && d <= pulse.radius + record.r) { pulse.hitRecords.add(record.id); record.collected = true; record.revealUntil = now + currentChapter().fade * 1.4; recordSound(); showLog(record.line,4200); if (record.grant) showLog(`${record.line}  空格：部署回声诱饵。`,4600); if (record.trigger === "hunt") { huntUntil = now + currentChapter().huntDuration; huntSound(); showLog("记录 06 // 门正在收拢。撤离倒计时启动。",4600); } if (records.every(item => item.collected)) { exit.unlocked = true; exit.revealUntil = now + currentChapter().fade * 2; showLog(record.trigger ? "出口坐标已锁定。不要停下。" : "章节记录完整。出口坐标已恢复。",3500); } updateHud(now); } });
         const exitDistance = dist(pulse.x,pulse.y,exit.x,exit.y); if (!pulse.hitExit && exitDistance > pulse.previousRadius - exit.r && exitDistance <= pulse.radius + exit.r) { pulse.hitExit = true; exit.revealUntil = now + currentChapter().fade * 1.8; }
       }
-      monsters.forEach(monster => { const d = dist(pulse.x,pulse.y,monster.x,monster.y); if (!pulse.hitMonsters.has(monster.id) && d > pulse.previousRadius - monster.r && d <= pulse.radius + monster.r) { pulse.hitMonsters.add(monster.id); monster.revealUntil = now + currentChapter().fade; setMonsterTarget(monster,pulse.x,pulse.y,now); if (now - lastEchoAt > 76) { echoSound("monster"); lastEchoAt = now; } } });
+      monsters.forEach(monster => { const d = dist(pulse.x,pulse.y,monster.x,monster.y); if (!pulse.hitMonsters.has(monster.id) && d > pulse.previousRadius - monster.r && d <= pulse.radius + monster.r) { pulse.hitMonsters.add(monster.id); monster.revealUntil = now + currentChapter().fade; if(pulse.type!=="analysis")setMonsterTarget(monster,pulse.x,pulse.y,now); if (now - lastEchoAt > 76) { echoSound("monster"); lastEchoAt = now; } } });
+    }
+    function downPlayer(entity, now) {
+      if(!coOp){endGame("lost");return;}
+      if(isDowned(entity))return;
+      entity.downedUntil=now+6800; entity.exposedUntil=now+900; failSound(); showLog(`${entity===player?"P1":"P2"} 信道中断 // 等待重连。`,3200);
+      if(isDowned(player)&&isDowned(player2))endGame("lost"); else updateHud(now);
+    }
+    function attemptRevive() {
+      if(!coOp||state!=="playing")return false; const now=performance.now(), pairs=[[player,player2],[player2,player]];
+      for(const [rescuer,target] of pairs){if(!isDowned(rescuer)&&isDowned(target)&&dist(rescuer.x,rescuer.y,target.x,target.y)<Math.min(width,height)*.045){target.downedUntil=0;target.x=rescuer.x+(target===player?-9:9);target.y=rescuer.y;alert=clamp(alert+.12,0,1);noiseBurst(.14,.013,1280,4,0);tone(318,.2,.018,"sine",520,0);showLog("重连完成 // 双信道恢复。",2500);updateHud(now);return true;}}
+      return false;
     }
     function endGame(result) {
       if (state !== "playing") return;
@@ -644,24 +677,25 @@
       if (chapterIndex === CHAPTERS.length - 1) { state = "won"; const ending = endingRecord(); finalEnding = ending; showStatus("brief", `最终记录 ${ending.id} // 信号 ${String(Math.round(ending.average)).padStart(2,"0")}%`, ending.title, `${ending.copy} F 查看档案 · C 回放记录 · R 重新进入`); return; }
       state = "interchapter"; showStatus("brief", `章节 ${currentChapter().id} // 记录恢复`, "门已开启", `完整度 ${String(Math.round(integrity)).padStart(2,"0")}% · 档案 AR-0${chapterIndex + 2} 已恢复 · ENTER / 左键继续`);
     }
-    function updatePlayer(delta) { const dx = (keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0), dy = (keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0); if (!dx&&!dy) return; const length = Math.hypot(dx,dy), speed = Math.min(width,height) * .244; move(player,dx/length*speed*delta,dy/length*speed*delta); }
+    function updatePlayer(delta) { if(isDowned(player))return; const dx = (keys.d||(!coOp&&keys.arrowright)?1:0)-(keys.a||(!coOp&&keys.arrowleft)?1:0), dy = (keys.s||(!coOp&&keys.arrowdown)?1:0)-(keys.w||(!coOp&&keys.arrowup)?1:0); if (!dx&&!dy) return; const length = Math.hypot(dx,dy), speed = Math.min(width,height) * .244; move(player,dx/length*speed*delta,dy/length*speed*delta); }
+    function updatePlayer2(delta) { if(!coOp||!player2||isDowned(player2))return; const dx=(keys.arrowright?1:0)-(keys.arrowleft?1:0),dy=(keys.arrowdown?1:0)-(keys.arrowup?1:0);if(!dx&&!dy)return;const length=Math.hypot(dx,dy),speed=Math.min(width,height)*.232;move(player2,dx/length*speed*delta,dy/length*speed*delta); }
     function updateMonster(monster, delta, now) {
-      const sheltered = isSheltered();
+      const sheltered = teamSheltered();
       if (sheltered && monster.mode !== "patrol") { monster.target = null; monster.mode = "patrol"; }
       let target = monster.target;
       if (target) { const dx = target.x-monster.x, dy=target.y-monster.y, length=Math.hypot(dx,dy); if (length < 7) { monster.target=null; monster.mode="search"; monster.searchUntil=now+1500; } else { const speed = Math.min(width,height) * monster.speed * (1 + alert * .64) * (huntUntil > now ? 1.30 : 1); move(monster,dx/length*speed*delta,dy/length*speed*delta); } }
       else if (monster.mode === "search") { if (now > monster.searchUntil) monster.mode = "patrol"; }
       else { const waypoint = monster.route[monster.routeIndex], dx=waypoint.x-monster.x, dy=waypoint.y-monster.y, length=Math.hypot(dx,dy); if (length < 6) monster.routeIndex = (monster.routeIndex + 1) % monster.route.length; else { const speed = Math.min(width,height) * monster.speed; move(monster,dx/length*speed*delta,dy/length*speed*delta); } }
-      if (!DEMO && !sheltered && dist(player.x,player.y,monster.x,monster.y) < player.r + monster.r + 2) endGame("lost");
+      if (!DEMO && !sheltered) { if(dist(player.x,player.y,monster.x,monster.y)<player.r+monster.r+2)downPlayer(player,now); if(coOp&&player2&&dist(player2.x,player2.y,monster.x,monster.y)<player2.r+monster.r+2)downPlayer(player2,now); }
     }
     function updateBait(now) { if (!bait) return; if (now >= bait.armedAt) bait.ready = true; if (bait.ready && bait.pulsesLeft > 0 && now >= bait.nextPulseAt) { const pulse = makePulse(bait.x,bait.y,"bait"); pulse.max = Math.min(width,height) * .38; pulses.push(pulse); bait.pulsesLeft -= 1; bait.nextPulseAt = now + 950; baitSound(); } if (now >= bait.expiresAt) { bait = null; showLog("诱饵静默。",1500); } }
     function updateAmbientCue() { if (!ambientCue || ambientCue.triggered || dist(player.x,player.y,ambientCue.x,ambientCue.y) > ambientCue.r) return; ambientCue.triggered = true; markCueConfirmed(chapterIndex); environmentCueSound(ambientCue.type); showLog(`${ambientCue.line} 线索已证实。`,3200); }
-    function updateShelterFeedback(now) { const sheltered=isSheltered(); if(sheltered&&!shelterLatched){shelterLatched=true;silencePulseUntil=now+620;silenceResetSound();showLog("静默舱 // 声场归零。",2100);} if(!sheltered)shelterLatched=false; }
+    function updateShelterFeedback(now) { const sheltered=teamSheltered(); if(sheltered&&!shelterLatched){shelterLatched=true;silencePulseUntil=now+620;silenceResetSound();showLog("静默舱 // 声场归零。",2100);} if(!sheltered)shelterLatched=false; }
     function updateThreatFeedback(now) {
       const active=state==="playing"&&monsters?.length, scale=Math.min(width,height);
       if (!active) { threatLevel=0; threatVeilEl.style.opacity="0"; canvas.style.transform="translate3d(0,0,0)"; return; }
-      if(isSheltered()){threatLevel=0;threatVeilEl.style.opacity="0";canvas.style.transform="translate3d(0,0,0)";return;}
-      const closest=Math.min(...monsters.map(monster=>dist(player.x,player.y,monster.x,monster.y))); const proximity=clamp(1-closest/(scale*.42),0,1), hunt=huntUntil>now?1:0;
+      if(teamSheltered()){threatLevel=0;threatVeilEl.style.opacity="0";canvas.style.transform="translate3d(0,0,0)";return;}
+      const closest=Math.min(...monsters.flatMap(monster=>[dist(player.x,player.y,monster.x,monster.y),coOp&&player2?dist(player2.x,player2.y,monster.x,monster.y):Infinity])); const proximity=clamp(1-closest/(scale*.42),0,1), hunt=huntUntil>now?1:0;
       threatLevel=clamp(Math.max(alert*.58,proximity*.92,hunt*.74),0,1); threatVeilEl.style.opacity=String(Math.pow(threatLevel,1.7)*.76);
       if (reduceMotion || threatLevel<.34) { canvas.style.transform="translate3d(0,0,0)"; return; }
       const amplitude=(threatLevel-.32)*3.4, x=Math.sin(now*.043)*amplitude, y=Math.cos(now*.057)*amplitude*.62; canvas.style.transform=`translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0)`;
@@ -673,13 +707,15 @@
       if (state !== "playing") return;
       alert = Math.max(0,alert - delta*.043);
       if (charge < 3 && now >= nextChargeAt) { charge += 1; nextChargeAt = charge < 3 ? now + currentChapter().cooldown : 0; if (audio) tone(350,.055,.012,"sine",470); }
-      if (DEMO && now - lastDemoAt > 2500) { emitPulse(); lastDemoAt = now; } else if (!DEMO) updatePlayer(delta);
+      if (DEMO && now - lastDemoAt > 2500) { emitPulse(); lastDemoAt = now; } else if (!DEMO) { updatePlayer(delta); updatePlayer2(delta); }
       updateShelterFeedback(now);
+      if(coOp&&((player.downedUntil&&now>=player.downedUntil)||(player2?.downedUntil&&now>=player2.downedUntil))){showLog("重连窗口关闭。",1600);endGame("lost");return;}
+      if(coOp&&analysisCharge<2&&now>=analysisNextAt){analysisCharge+=1;analysisNextAt=analysisCharge<2?now+1550:0;}
       updateBait(now); updateAmbientCue(); pulses.forEach(pulse => { pulse.previousRadius=pulse.radius; pulse.radius += pulse.speed*delta; scanPulse(pulse,now); }); pulses = pulses.filter(pulse => { if (pulse.radius >= pulse.max) { traces.push({ x:pulse.x, y:pulse.y, radius:pulse.max, type:pulse.type, expires:now+720 }); return false; } return true; }); traces = traces.filter(trace => trace.expires > now);
-      if (huntUntil > now && !isSheltered() && now - lastHuntTargetAt > 520) { monsters.forEach(monster => setMonsterTarget(monster,player.x,player.y,now)); lastHuntTargetAt = now; }
+      if (huntUntil > now && !teamSheltered() && now - lastHuntTargetAt > 520) { const target=coOp&&player2&&dist(player2.x,player2.y,monsters[0]?.x||0,monsters[0]?.y||0)<dist(player.x,player.y,monsters[0]?.x||0,monsters[0]?.y||0)?player2:player;monsters.forEach(monster => setMonsterTarget(monster,target.x,target.y,now)); lastHuntTargetAt = now; }
       monsters.forEach(monster => updateMonster(monster,delta,now));
       if (huntUntil && now > huntUntil) { showLog("门已闭合。",1800); endGame("lost"); }
-      if (exit.unlocked && dist(player.x,player.y,exit.x,exit.y) < player.r+exit.r+2) endGame("won");
+      if (exit.unlocked && dist(player.x,player.y,exit.x,exit.y) < player.r+exit.r+2 && (!coOp || (player2&&!isDowned(player2)&&dist(player2.x,player2.y,exit.x,exit.y)<player2.r+exit.r+2))) endGame("won");
       chapterIntegrity = calculateIntegrity();
       updateHud(now);
     }
@@ -693,7 +729,9 @@
     function drawExit(now) { const alpha=exit.unlocked?Math.max(alphaUntil(exit.revealUntil,now),.22):alphaUntil(exit.revealUntil,now);if(alpha<=0)return;ctx.save();ctx.globalAlpha=Math.pow(alpha,.68);const glow=ctx.createRadialGradient(exit.x,exit.y,0,exit.x,exit.y,18);glow.addColorStop(0,"rgba(211,170,88,.66)");glow.addColorStop(1,"rgba(211,170,88,0)");ctx.fillStyle=glow;ctx.beginPath();ctx.arc(exit.x,exit.y,18,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#e3bf72";ctx.lineWidth=1.05;ctx.shadowColor="rgba(211,170,88,.72)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(exit.x,exit.y,exit.unlocked?4:3,0,Math.PI*2);ctx.stroke();if(!exit.unlocked){ctx.beginPath();ctx.moveTo(exit.x-3,exit.y+3);ctx.lineTo(exit.x+3,exit.y-3);ctx.stroke();}ctx.restore(); }
     function drawBait(now) { if(!bait)return;ctx.save();ctx.globalAlpha=bait.ready?.64:.22;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.85;ctx.setLineDash([2,5]);ctx.beginPath();ctx.arc(bait.x,bait.y,bait.ready?8:4,0,Math.PI*2);ctx.stroke();ctx.restore(); }
     function drawSilenceReset(now) { if(silencePulseUntil<=now||reduceMotion)return;const p=clamp((silencePulseUntil-now)/620,0,1),r=(1-p)*Math.min(width,height)*.15+8;ctx.save();ctx.globalAlpha=Math.sin(p*Math.PI)*.42;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.8;ctx.setLineDash([2,9]);ctx.shadowColor="rgba(246,246,242,.65)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(player.x,player.y,r,0,Math.PI*2);ctx.stroke();ctx.restore(); }
-    function drawPlayer(now) { const exposure=clamp((player.exposedUntil-now)/460,0,1), sheltered=isSheltered();ctx.save();if(exposure>0){const halo=ctx.createRadialGradient(player.x,player.y,0,player.x,player.y,20);halo.addColorStop(0,`rgba(161,42,48,${exposure*.24})`);halo.addColorStop(1,"rgba(161,42,48,0)");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(player.x,player.y,20,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=.26+exposure*.34;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.75;ctx.beginPath();ctx.arc(player.x,player.y,7.5,.28,Math.PI*1.63);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.34)":"rgba(255,255,255,.95)";ctx.shadowBlur=sheltered?4:9;ctx.beginPath();ctx.arc(player.x,player.y,player.r*.62,0,Math.PI*2);ctx.fill();ctx.restore(); }
+    function drawDowned(entity,label,now) { const alpha=clamp((entity.downedUntil-now)/6800,0,1);ctx.save();ctx.translate(entity.x,entity.y);ctx.globalAlpha=.72+alpha*.18;ctx.strokeStyle="#d44349";ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.shadowColor="rgba(161,42,48,.84)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font="8px ui-monospace";ctx.fillStyle="#d44349";ctx.fillText(label,-6,-13);ctx.restore(); }
+    function drawPlayer(now) { if(isDowned(player)){drawDowned(player,"P1",now);return;} const exposure=clamp((player.exposedUntil-now)/460,0,1), sheltered=isSheltered(player);ctx.save();if(exposure>0){const halo=ctx.createRadialGradient(player.x,player.y,0,player.x,player.y,20);halo.addColorStop(0,`rgba(161,42,48,${exposure*.24})`);halo.addColorStop(1,"rgba(161,42,48,0)");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(player.x,player.y,20,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=.26+exposure*.34;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.75;ctx.beginPath();ctx.arc(player.x,player.y,7.5,.28,Math.PI*1.63);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.34)":"rgba(255,255,255,.95)";ctx.shadowBlur=sheltered?4:9;ctx.beginPath();ctx.arc(player.x,player.y,player.r*.62,0,Math.PI*2);ctx.fill();ctx.restore(); }
+    function drawPlayer2(now) { if(!coOp||!player2)return;if(isDowned(player2)){drawDowned(player2,"P2",now);return;}const exposure=clamp((player2.exposedUntil-now)/260,0,1), sheltered=isSheltered(player2);ctx.save();ctx.translate(player2.x,player2.y);ctx.globalAlpha=.54+exposure*.26;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.9;ctx.setLineDash([2,4]);ctx.beginPath();ctx.arc(0,0,7.3,-.52,Math.PI*1.22);ctx.stroke();ctx.setLineDash([]);ctx.rotate(Math.PI/4);ctx.strokeStyle="rgba(246,246,242,.95)";ctx.shadowColor=sheltered?"rgba(246,246,242,.28)":"rgba(255,255,255,.76)";ctx.shadowBlur=sheltered?3:7;ctx.strokeRect(-2.2,-2.2,4.4,4.4);ctx.restore(); }
     function drawPrologue(now) {
       const active = state !== "prologue-title";
       if (!active) {
@@ -722,10 +760,10 @@
       }
       ctx.restore();
     }
-    function render(now) { ctx.clearRect(0,0,width,height);if(finalEnding&&(state==="won"||state==="replay-complete")){drawEndingVisual(finalEnding,now);return;}if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now);drawSilenceReset(now); }
+    function render(now) { ctx.clearRect(0,0,width,height);if(finalEnding&&(state==="won"||state==="replay-complete")){drawEndingVisual(finalEnding,now);return;}if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now);drawPlayer2(now);drawSilenceReset(now); }
     function frame(now) { const delta=Math.min(.035,(now-lastTime)/1000);lastTime=now;update(delta,now);render(now);requestAnimationFrame(frame); }
     function actionInput() { if(state==="prologue-title")beginPrologue();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); else if(state==="replay-complete")openReplay(); }
-    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="settings"){if(key==="escape")closeSettings();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(key==="escape"){openSettings();event.preventDefault();return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
+    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="settings"){if(key==="escape")closeSettings();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(key==="escape"){openSettings();event.preventDefault();return;}if(state==="prologue-title"&&key==="2"){startCoOp();event.preventDefault();return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="e"){emitPulse();event.preventDefault();}if(key==="/"){emitAnalysisPulse();event.preventDefault();}if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(attemptRevive()){event.preventDefault();return;}if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
     addEventListener("keyup",event=>{keys[event.key.toLowerCase()]=false;});
     addEventListener("pointerdown",event=>{if(event.button!==0||state==="archive"||state==="settings"||state==="replay")return;if(state==="prologue-title"||state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
     archivePrevEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage>0){archivePage-=1;}else{for(let index=archiveEntryIndex-1;index>=0;index-=1){if(entryIntegrity(index)>0){archiveEntryIndex=index;archivePage=2;break;}}}updateArchivePage();});
@@ -743,7 +781,7 @@
     bassControlEl.addEventListener("input",()=>{audioPrefs.bass=Number(bassControlEl.value)/100;persistAudioPrefs();updateSettingsUi();updateAudioMix();});
     calibrationRunEl.addEventListener("click",runCalibration);
     addEventListener("resize",resize);
-    updateSettingsUi(); resize();if(DEMO){loadChapter(PREVIEW_SILENCE?2:0,true);beginChapter();if(PREVIEW_SILENCE){player.x=shelters[0].x;player.y=shelters[0].y;silencePulseUntil=performance.now()+2200;}if(PREVIEW_THREAT){alert=.88;monsters[0].x=player.x+width*.075;monsters[0].y=player.y-height*.04;huntUntil=performance.now()+99999;}if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100};state="won";showStatus("brief",`最终记录 ${PREVIEW_ENDING}`,PREVIEW_ENDING==="ER-00"?"漂流噪声":PREVIEW_ENDING==="ER-01"?"回声仍在":"岸上无声","预览 // 最终记录画面");}if(PREVIEW_SETTINGS)openSettings();}else loadPrologue(true);requestAnimationFrame(frame);
+    updateSettingsUi(); resize();if(DEMO){coOp=PREVIEW_COOP;loadChapter(PREVIEW_SILENCE?2:0,true);beginChapter();if(PREVIEW_SILENCE){player.x=shelters[0].x;player.y=shelters[0].y;silencePulseUntil=performance.now()+2200;}if(PREVIEW_THREAT){alert=.88;monsters[0].x=player.x+width*.075;monsters[0].y=player.y-height*.04;huntUntil=performance.now()+99999;}if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100};state="won";showStatus("brief",`最终记录 ${PREVIEW_ENDING}`,PREVIEW_ENDING==="ER-00"?"漂流噪声":PREVIEW_ENDING==="ER-01"?"回声仍在":"岸上无声","预览 // 最终记录画面");}if(PREVIEW_SETTINGS)openSettings();}else loadPrologue(true);requestAnimationFrame(frame);
   })();
   </script>
 </body>
