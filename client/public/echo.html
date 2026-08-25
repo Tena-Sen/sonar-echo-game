@@ -209,7 +209,7 @@
     const PREVIEW_ENDING = QUERY.get("ending");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
-    let chapterIndex = 0, state = "prologue-title", player, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue, ambientCue;
+    let chapterIndex = 0, state = "prologue-title", player, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue, ambientCue, audioGraph;
     let sonarCount = 0, runDeaths = 0, charge = 3, nextChargeAt = 0, alert = 0, lastEchoAt = 0, logUntil = 0, huntUntil = 0, lastHuntTargetAt = 0, lastDemoAt = 0;
     let activeChapter = -1, chapterFailures = 0, chapterStartSonar = 0, chapterIntegrity = 100;
     let archiveStore = (() => { try { const legacy = localStorage.getItem("sonar-ar01") === "1"; const stored = JSON.parse(localStorage.getItem("sonar-archives") || "{}"); if (legacy && !stored["AR-01"]) stored["AR-01"] = 100; return stored; } catch { return {}; } })();
@@ -217,6 +217,7 @@
     let bestStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-best-integrity") || "{}"); } catch { return {}; } })();
     let badgeStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-chapter-badges") || "{}"); } catch { return {}; } })();
     let cueStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-cue-evidence") || "{}"); } catch { return {}; } })();
+    let audioMuted = (() => { try { return localStorage.getItem("sonar-audio-muted") === "1"; } catch { return false; } })();
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
@@ -225,46 +226,62 @@
     function screenWalls() { return currentChapter().walls.map(([x,y,w,h]) => ({ x:x * width, y:y * height, w:w * width, h:h * height })); }
     function isSheltered() { return shelters.some(shelter => dist(player.x, player.y, shelter.x, shelter.y) < shelter.r); }
     function showLog(text, duration = 3600) { logEl.textContent = text; logUntil = performance.now() + duration; }
-    function tone(frequency, duration, volume, type = "sine", slideTo = null) {
+    function makeNoiseBuffer(seconds = 2.4) {
+      const length = Math.floor(audio.sampleRate * seconds), buffer = audio.createBuffer(1,length,audio.sampleRate), data = buffer.getChannelData(0); let last = 0;
+      for (let index=0;index<length;index+=1) { const white=Math.random()*2-1; last=last*.982+white*.018; data[index]=last*2.3; }
+      return buffer;
+    }
+    function createAudioGraph() {
+      if (audioGraph || !audio) return;
+      const master=audio.createGain(), compressor=audio.createDynamicsCompressor(), bedGain=audio.createGain(), dustGain=audio.createGain(), threatGain=audio.createGain(), dustFilter=audio.createBiquadFilter(), threatFilter=audio.createBiquadFilter(), panner=audio.createStereoPanner();
+      master.gain.value=audioMuted?.0001:.62; compressor.threshold.value=-23; compressor.knee.value=18; compressor.ratio.value=7; compressor.attack.value=.018; compressor.release.value=.24;
+      bedGain.gain.value=.0001; dustGain.gain.value=.0001; threatGain.gain.value=.0001; dustFilter.type="bandpass"; dustFilter.frequency.value=380; dustFilter.Q.value=.42; threatFilter.type="lowpass"; threatFilter.frequency.value=88; threatFilter.Q.value=1.1;
+      master.connect(compressor).connect(audio.destination); bedGain.connect(master); dustGain.connect(panner).connect(master); threatGain.connect(threatFilter).connect(master);
+      const sub=audio.createOscillator(), drone=audio.createOscillator(), threat=audio.createOscillator(), noise=audio.createBufferSource();
+      sub.type="sine"; sub.frequency.value=41; drone.type="sine"; drone.frequency.value=62.4; threat.type="triangle"; threat.frequency.value=31; noise.buffer=makeNoiseBuffer(); noise.loop=true;
+      const subGain=audio.createGain(), droneGain=audio.createGain(); subGain.gain.value=.032; droneGain.gain.value=.012;
+      sub.connect(subGain).connect(bedGain); drone.connect(droneGain).connect(bedGain); noise.connect(dustFilter).connect(dustGain); threat.connect(threatGain);
+      const now=audio.currentTime; [sub,drone,threat,noise].forEach(node=>node.start(now));
+      audioGraph={master,bedGain,dustGain,dustFilter,threatGain,threatFilter,panner,sub,drone,threat,noise};
+    }
+    function outputBus() { return audioGraph ? audioGraph.master : audio?.destination; }
+    function tone(frequency, duration, volume, type = "sine", slideTo = null, pan = 0) {
       if (!audio) return;
-      const now = audio.currentTime, oscillator = audio.createOscillator(), gain = audio.createGain();
-      oscillator.type = type; oscillator.frequency.setValueAtTime(frequency, now);
-      if (slideTo) oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo), now + duration);
-      gain.gain.setValueAtTime(.0001, now); gain.gain.exponentialRampToValueAtTime(volume, now + .018); gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
-      oscillator.connect(gain).connect(audio.destination); oscillator.start(now); oscillator.stop(now + duration + .04);
+      const now=audio.currentTime, oscillator=audio.createOscillator(), gain=audio.createGain(), panner=audio.createStereoPanner();
+      oscillator.type=type; oscillator.frequency.setValueAtTime(frequency,now); if(slideTo) oscillator.frequency.exponentialRampToValueAtTime(Math.max(1,slideTo),now+duration);
+      panner.pan.setValueAtTime(clamp(pan,-1,1),now); gain.gain.setValueAtTime(.0001,now); gain.gain.exponentialRampToValueAtTime(volume,now+.018); gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+      oscillator.connect(gain).connect(panner).connect(outputBus()); oscillator.start(now); oscillator.stop(now+duration+.04);
     }
-    function ensureAudio() { if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === "suspended") audio.resume(); }
-    function sonarSound() { tone(112,.62,.072,"sine",42); tone(57,.54,.035,"triangle",35); }
-    function echoSound(kind) { tone(kind === "monster" ? 420 : 620, kind === "monster" ? .10 : .075, .018, "sine", kind === "monster" ? 270 : 430); }
-    function recordSound() { tone(784,.12,.028,"sine",1047); tone(523,.20,.018,"triangle",784); }
-    function baitSound() { tone(180,.22,.036,"triangle",75); }
-    function failSound() { tone(50,.64,.09,"sawtooth",24); tone(95,.38,.035,"triangle",38); }
-    function noiseBurst(duration = .7, volume = .034) {
-      if (!audio) return;
-      const rate = audio.sampleRate, length = Math.floor(rate * duration), buffer = audio.createBuffer(1,length,rate), data = buffer.getChannelData(0);
-      for (let index = 0; index < length; index += 1) data[index] = (Math.random() * 2 - 1) * (1 - index / length);
-      const source = audio.createBufferSource(), filter = audio.createBiquadFilter(), gain = audio.createGain(), now = audio.currentTime;
-      filter.type = "bandpass"; filter.frequency.value = 1200; filter.Q.value = .7;
-      gain.gain.setValueAtTime(.0001,now); gain.gain.exponentialRampToValueAtTime(volume,now+.025); gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
-      source.buffer = buffer; source.connect(filter).connect(gain).connect(audio.destination); source.start(now); source.stop(now + duration + .02);
+    function ensureAudio() { if(!audio) audio=new (window.AudioContext||window.webkitAudioContext)(); if(audio.state==="suspended") audio.resume(); createAudioGraph(); }
+    function noiseBurst(duration=.7,volume=.034,frequency=1200,q=.7,pan=0) {
+      if(!audio) return;
+      const source=audio.createBufferSource(), filter=audio.createBiquadFilter(), gain=audio.createGain(), panner=audio.createStereoPanner(), now=audio.currentTime;
+      source.buffer=makeNoiseBuffer(Math.max(.14,duration)); filter.type="bandpass"; filter.frequency.value=frequency; filter.Q.value=q; panner.pan.value=clamp(pan,-1,1);
+      gain.gain.setValueAtTime(.0001,now); gain.gain.exponentialRampToValueAtTime(volume,now+.022); gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+      source.connect(filter).connect(gain).connect(panner).connect(outputBus()); source.start(now); source.stop(now+duration+.03);
     }
-    function damagedSignal() {
-      ensureAudio();
-      noiseBurst(.42,.026); tone(54,.78,.024,"sine",66); tone(1180,.055,.011,"square",310);
-      setTimeout(() => { if (audio) { noiseBurst(.13,.016); tone(246,.11,.012,"triangle",94); } }, 180);
+    function updateAudioMix(now=performance.now()) {
+      if(!audioGraph||!audio) return;
+      const time=audio.currentTime, active=state==="playing"||state.startsWith("prologue"), sheltered=state==="playing"&&isSheltered(), hunt=state==="playing"&&huntUntil>now, menu=state==="archive"||state==="replay"||state==="brief"||state==="interchapter";
+      const base=active?.034:.011, dust=active?(sheltered?.007:.018+alert*.015):.005, threat=active&&!sheltered?(hunt?.050:.005+alert*.021):.0001;
+      audioGraph.master.gain.setTargetAtTime(audioMuted?.0001:.62,time,.08); audioGraph.bedGain.gain.setTargetAtTime(base,time,.7); audioGraph.dustGain.gain.setTargetAtTime(menu?dust*.42:dust,time,.5); audioGraph.threatGain.gain.setTargetAtTime(threat,time,.11);
+      audioGraph.dustFilter.frequency.setTargetAtTime(280+alert*860+(hunt?390:0),time,.32); audioGraph.threatFilter.frequency.setTargetAtTime(hunt?170:78+alert*72,time,.14); audioGraph.panner.pan.setTargetAtTime(Math.sin(now*.00011)*.24,time,1.8);
+      audioGraph.sub.detune.setTargetAtTime((hunt?8:0)+Math.sin(now*.0004)*3,time,.8); audioGraph.drone.detune.setTargetAtTime((sheltered?-5:0)+Math.sin(now*.00031)*2,time,1.2);
     }
-    function environmentCueSound(type) {
-      if (!audio) return;
-      if (type === "return") { tone(315,.07,.014,"sine",292); setTimeout(() => tone(276,.09,.012,"sine",260), 220); }
-      if (type === "confirm") { tone(72,.38,.022,"triangle",88); setTimeout(() => tone(640,.045,.008,"square",710), 130); }
-      if (type === "knock") { tone(154,.035,.027,"triangle",82); setTimeout(() => tone(154,.035,.023,"triangle",82), 190); }
-      if (type === "uplink") { noiseBurst(.18,.011); tone(960,.13,.009,"sine",1260); }
-    }
+    function toggleMute() { audioMuted=!audioMuted; try{localStorage.setItem("sonar-audio-muted",audioMuted?"1":"0");}catch{} if(audioGraph) updateAudioMix(); showLog(audioMuted?"监听输出 // 静音。":"监听输出 // 已恢复。",1800); }
+    function sonarSound() { noiseBurst(.28,.022,155,.8,-.05); tone(108,.72,.052,"sine",39,-.10); tone(48,.58,.026,"triangle",31,.12); tone(1480,.075,.008,"sine",720,.24); }
+    function echoSound(kind) { if(kind==="monster"){noiseBurst(.13,.014,430,3,.18);tone(178,.15,.019,"sine",108,.18);}else{noiseBurst(.075,.010,1300,5,-.12);tone(690,.08,.012,"sine",465,-.14);} }
+    function recordSound() { noiseBurst(.18,.012,2200,4,.16); tone(612,.18,.018,"sine",980,.12); tone(932,.11,.010,"triangle",1350,.22); }
+    function baitSound() { noiseBurst(.16,.012,560,1.8,-.18); tone(154,.32,.028,"triangle",62,-.20); }
+    function failSound() { noiseBurst(.82,.072,92,1.1,0); tone(42,.92,.065,"sawtooth",23,0); tone(82,.42,.022,"triangle",35,-.12); }
+    function bootAtmosphere() { ensureAudio(); noiseBurst(.52,.021,480,1.2,-.15); tone(38,.94,.021,"sine",54,-.08); tone(740,.09,.008,"sine",330,.26); setTimeout(()=>{if(audio){noiseBurst(.24,.013,960,3,.12);tone(168,.18,.010,"triangle",80,.10);}},210); }
+    function environmentCueSound(type) { if(!audio)return; if(type==="return"){noiseBurst(.11,.011,920,5,-.34);setTimeout(()=>{tone(286,.12,.013,"sine",248,-.32);},220);} if(type==="confirm"){tone(68,.48,.020,"triangle",84,.14);setTimeout(()=>noiseBurst(.09,.009,1870,6,.27),150);} if(type==="knock"){noiseBurst(.052,.022,190,2,-.24);setTimeout(()=>noiseBurst(.048,.018,174,2,.18),198);} if(type==="uplink"){noiseBurst(.24,.011,1420,8,.35);tone(880,.22,.010,"sine",1280,.30);} }
+    function huntSound() { noiseBurst(.34,.034,164,.9,0); tone(92,.46,.034,"sawtooth",48,-.08); tone(640,.09,.010,"sine",310,.22); }
     function triggerGlitch() {
       clearTimeout(glitchTimer); glitchEl.classList.remove("active");
       requestAnimationFrame(() => glitchEl.classList.add("active"));
       glitchTimer = setTimeout(() => glitchEl.classList.remove("active"), 820);
-      if (audio) noiseBurst(.52,.05);
+      if (audio) noiseBurst(.52,.032,760,1.2,.06);
     }
     function persistArchives() { try { localStorage.setItem("sonar-archives",JSON.stringify(archiveStore)); } catch {} }
     function persistBest() { try { localStorage.setItem("sonar-best-integrity",JSON.stringify(bestStore)); } catch {} }
@@ -402,8 +419,7 @@
       prologue.phase = "wake";
       prologue.wakeUntil = performance.now() + 1100;
       hideStatus();
-      tone(64,.72,.035,"sine",92);
-      damagedSignal();
+      bootAtmosphere();
       showLog(`内部通讯 // ${prologue.signalLine}`, 4200);
     }
     function beginCalibration() {
@@ -427,7 +443,7 @@
       player.exposedUntil = now + 460;
       pulses.push(makePulse(player.x,player.y));
       sonarSound();
-      tone(445,.14,.018,"sine",280);
+      noiseBurst(.12,.008,1180,6,.18);
       state = "prologue-reveal";
       prologue.phase = "reveal";
       prologue.anomalyUntil = now + 2200;
@@ -481,7 +497,7 @@
       if (activeChapter !== chapterIndex || resetRun) { chapterFailures = 0; chapterStartSonar = sonarCount; chapterIntegrity = 100; activeChapter = chapterIndex; }
       state = "brief";
       setGameplayHud(true);
-      hintEl.innerHTML = `输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）${Object.keys(archiveStore).length ? "<br>F // 设备档案" : ""}`;
+      hintEl.innerHTML = `输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）${Object.keys(archiveStore).length ? "<br>F // 设备档案" : ""}<br>M // 静音`;
       updateHud();
       showStatus("brief", `章节 ${chapter.id} // ${chapter.mood}`, chapter.title, `${chapter.subtitle}  ENTER / 左键开始`);
       showLog(`系统记录 // ${chapter.subtitle}`, 4200);
@@ -530,7 +546,7 @@
       if (pulse.type === "player") {
         walls.forEach((wall,index) => { if (!pulse.hitWalls.has(index) && sourceHitsRect(pulse,wall)) { pulse.hitWalls.add(index); reveal[index] = now + currentChapter().fade; if (now - lastEchoAt > 76) { echoSound("wall"); lastEchoAt = now; } } });
         shelters.forEach((shelter,index) => { const d = dist(pulse.x,pulse.y,shelter.x,shelter.y); if (!pulse.hitShelters.has(index) && d > pulse.previousRadius - shelter.r && d <= pulse.radius + shelter.r) { pulse.hitShelters.add(index); shelter.revealUntil = now + currentChapter().fade; } });
-        records.forEach(record => { const d = dist(pulse.x,pulse.y,record.x,record.y); if (!record.collected && !pulse.hitRecords.has(record.id) && d > pulse.previousRadius - record.r && d <= pulse.radius + record.r) { pulse.hitRecords.add(record.id); record.collected = true; record.revealUntil = now + currentChapter().fade * 1.4; recordSound(); showLog(record.line,4200); if (record.grant) showLog(`${record.line}  空格：部署回声诱饵。`,4600); if (record.trigger === "hunt") { huntUntil = now + currentChapter().huntDuration; showLog("记录 06 // 门正在收拢。撤离倒计时启动。",4600); tone(140,.34,.06,"sawtooth",72); } if (records.every(item => item.collected)) { exit.unlocked = true; exit.revealUntil = now + currentChapter().fade * 2; showLog(record.trigger ? "出口坐标已锁定。不要停下。" : "章节记录完整。出口坐标已恢复。",3500); } updateHud(now); } });
+        records.forEach(record => { const d = dist(pulse.x,pulse.y,record.x,record.y); if (!record.collected && !pulse.hitRecords.has(record.id) && d > pulse.previousRadius - record.r && d <= pulse.radius + record.r) { pulse.hitRecords.add(record.id); record.collected = true; record.revealUntil = now + currentChapter().fade * 1.4; recordSound(); showLog(record.line,4200); if (record.grant) showLog(`${record.line}  空格：部署回声诱饵。`,4600); if (record.trigger === "hunt") { huntUntil = now + currentChapter().huntDuration; huntSound(); showLog("记录 06 // 门正在收拢。撤离倒计时启动。",4600); } if (records.every(item => item.collected)) { exit.unlocked = true; exit.revealUntil = now + currentChapter().fade * 2; showLog(record.trigger ? "出口坐标已锁定。不要停下。" : "章节记录完整。出口坐标已恢复。",3500); } updateHud(now); } });
         const exitDistance = dist(pulse.x,pulse.y,exit.x,exit.y); if (!pulse.hitExit && exitDistance > pulse.previousRadius - exit.r && exitDistance <= pulse.radius + exit.r) { pulse.hitExit = true; exit.revealUntil = now + currentChapter().fade * 1.8; }
       }
       monsters.forEach(monster => { const d = dist(pulse.x,pulse.y,monster.x,monster.y); if (!pulse.hitMonsters.has(monster.id) && d > pulse.previousRadius - monster.r && d <= pulse.radius + monster.r) { pulse.hitMonsters.add(monster.id); monster.revealUntil = now + currentChapter().fade; setMonsterTarget(monster,pulse.x,pulse.y,now); if (now - lastEchoAt > 76) { echoSound("monster"); lastEchoAt = now; } } });
@@ -556,6 +572,7 @@
     function updateBait(now) { if (!bait) return; if (now >= bait.armedAt) bait.ready = true; if (bait.ready && bait.pulsesLeft > 0 && now >= bait.nextPulseAt) { const pulse = makePulse(bait.x,bait.y,"bait"); pulse.max = Math.min(width,height) * .38; pulses.push(pulse); bait.pulsesLeft -= 1; bait.nextPulseAt = now + 950; baitSound(); } if (now >= bait.expiresAt) { bait = null; showLog("诱饵静默。",1500); } }
     function updateAmbientCue() { if (!ambientCue || ambientCue.triggered || dist(player.x,player.y,ambientCue.x,ambientCue.y) > ambientCue.r) return; ambientCue.triggered = true; markCueConfirmed(chapterIndex); environmentCueSound(ambientCue.type); showLog(`${ambientCue.line} 线索已证实。`,3200); }
     function update(delta, now) {
+      updateAudioMix(now);
       if (state.startsWith("prologue")) { updatePrologue(delta,now); return; }
       if (state !== "playing") return;
       alert = Math.max(0,alert - delta*.043);
@@ -610,7 +627,7 @@
     function render(now) { ctx.clearRect(0,0,width,height);if(finalEnding&&(state==="won"||state==="replay-complete")){drawEndingVisual(finalEnding,now);return;}if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now); }
     function frame(now) { const delta=Math.min(.035,(now-lastTime)/1000);lastTime=now;update(delta,now);render(now);requestAnimationFrame(frame); }
     function actionInput() { if(state==="prologue-title")beginPrologue();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); else if(state==="replay-complete")openReplay(); }
-    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
+    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
     addEventListener("keyup",event=>{keys[event.key.toLowerCase()]=false;});
     addEventListener("pointerdown",event=>{if(event.button!==0||state==="archive")return;if(state==="prologue-title"||state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
     archivePrevEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage>0){archivePage-=1;}else{for(let index=archiveEntryIndex-1;index>=0;index-=1){if(entryIntegrity(index)>0){archiveEntryIndex=index;archivePage=2;break;}}}updateArchivePage();});
