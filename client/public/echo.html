@@ -33,6 +33,16 @@
     #usage strong { display: block; color: rgba(255,255,255,.84); font-size: 14px; font-weight: 400; letter-spacing: .22em; }
     #signal-state { top: 61px; right: 24px; color: rgba(255,255,255,.23); text-align: right; font-size: 8px; letter-spacing: .14em; transition: color .16s ease; }
     #signal-state.hot { color: rgba(212,67,73,.78); }
+    #resources { top: 83px; right: 24px; display: grid; justify-items: end; gap: 6px; color: rgba(255,255,255,.32); font-size: 8px; letter-spacing: .14em; }
+    #charge-pips { display: flex; gap: 4px; }
+    #charge-pips i { display: block; width: 14px; height: 2px; background: rgba(255,255,255,.13); transition: background .2s ease, box-shadow .2s ease; }
+    #charge-pips i.ready { background: rgba(246,246,242,.78); box-shadow: 0 0 5px rgba(255,255,255,.35); }
+    #pressure-readout { color: rgba(212,67,73,.32); }
+    #pressure-readout.high { color: rgba(212,67,73,.86); }
+    #objective { right: 24px; bottom: 18px; display: grid; justify-items: end; gap: 3px; color: rgba(211,170,88,.48); font-size: 8px; letter-spacing: .14em; }
+    #objective strong { color: rgba(227,191,114,.9); font-size: 10px; font-weight: 400; letter-spacing: .18em; }
+    #exit-state { color: rgba(255,255,255,.24); font-size: 7px; letter-spacing: .13em; }
+    #exit-state.unlocked { color: rgba(211,170,88,.72); }
     #calibration { top: 56px; left: 21px; display: flex; align-items: flex-start; gap: 6px; height: 8px; }
     #calibration i { display: block; width: 1px; height: 7px; background: rgba(255,255,255,.23); }
     #calibration i:nth-child(2), #calibration i:nth-child(4) { height: 4px; }
@@ -45,7 +55,7 @@
     #status .message.danger { color: #d44349; text-shadow: 0 0 22px rgba(161,42,48,.42); }
     #status h1 { margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5vw, 66px); font-weight: 400; letter-spacing: .07em; }
     #status p { margin: 0; color: rgba(255,255,255,.46); font-size: 10px; letter-spacing: .15em; }
-    @media (max-width: 560px) { #brand { top: 11px; left: 14px; } #progress { top: 70px; left: 14px; } #usage { top: 14px; right: 14px; } #signal-state { top: 51px; right: 14px; } #calibration { top: 50px; left: 14px; } #hint { left: 14px; bottom: 13px; font-size: 8px; } #brand .wordmark { display: none; } }
+    @media (max-width: 560px) { #brand { top: 11px; left: 14px; } #progress { top: 70px; left: 14px; } #usage { top: 14px; right: 14px; } #signal-state { top: 51px; right: 14px; } #resources { top: 72px; right: 14px; } #objective { right: 14px; bottom: 13px; } #calibration { top: 50px; left: 14px; } #hint { left: 14px; bottom: 13px; font-size: 8px; max-width: 140px; } #brand .wordmark { display: none; } }
     @media (prefers-reduced-motion: reduce) { #hint, #status { transition: none; } }
   </style>
 </head>
@@ -55,8 +65,10 @@
   <div id="progress" class="hud"><strong id="sector-label">扇区 01 / 03</strong><div id="sector-pips" aria-hidden="true"><i class="active"></i><i></i><i></i></div><span id="sector-name">静水</span></div>
   <div id="usage" class="hud">声呐使用次数<strong id="count">00</strong></div>
   <div id="signal-state" class="hud">波段：静默</div>
+  <div id="resources" class="hud"><span>回响电荷</span><div id="charge-pips" aria-label="声呐电荷"><i class="ready"></i><i class="ready"></i><i class="ready"></i></div><span id="pressure-readout">警觉 // 00</span></div>
   <div id="calibration" class="hud" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
   <div id="hint" class="hud">输入已监听<br>左键：声呐发射 · WASD：移动</div>
+  <div id="objective" class="hud">回声碎片<strong id="shard-count">00 / 00</strong><span id="exit-state">出口封存</span></div>
   <div id="status"><div class="message"><h1 id="status-title"></h1><p id="status-copy"></p></div></div>
 
   <script>
@@ -71,6 +83,10 @@
     const sectorPipsEl = document.getElementById("sector-pips");
     const hintEl = document.getElementById("hint");
     const signalEl = document.getElementById("signal-state");
+    const chargePipsEl = document.getElementById("charge-pips");
+    const pressureEl = document.getElementById("pressure-readout");
+    const shardCountEl = document.getElementById("shard-count");
+    const exitStateEl = document.getElementById("exit-state");
     const statusEl = document.getElementById("status");
     const statusTitle = document.getElementById("status-title");
     const statusCopy = document.getElementById("status-copy");
@@ -80,25 +96,29 @@
     const BORDER = [[0.035, 0.055, 0.93, 0.010], [0.035, 0.935, 0.93, 0.010], [0.035, 0.055, 0.010, 0.89], [0.955, 0.055, 0.010, 0.89]];
     const LEVELS = [
       {
-        sector: "01", title: "静水", fade: 1800, pulseSpeed: 0.72, monsterSpeed: 0.078,
+        sector: "01", title: "静水", fade: 1800, pulseSpeed: 0.72, pulseRange: 0.62, monsterSpeed: 0.078, chargeCooldown: 2300, alertGain: 0.30,
         player: [0.090, 0.865], exit: [0.922, 0.135], monsters: [[0.395, 0.675]],
+        shards: [[0.760, 0.170]],
         walls: [...BORDER, [0.160, 0.100, 0.008, 0.570], [0.160, 0.480, 0.180, 0.009], [0.310, 0.220, 0.008, 0.500], [0.310, 0.220, 0.170, 0.009], [0.480, 0.100, 0.008, 0.440], [0.480, 0.540, 0.220, 0.009], [0.700, 0.260, 0.008, 0.550], [0.700, 0.260, 0.200, 0.009], [0.860, 0.110, 0.008, 0.450], [0.580, 0.750, 0.280, 0.009], [0.480, 0.750, 0.008, 0.140], [0.160, 0.750, 0.180, 0.009], [0.095, 0.790, 0.115, 0.009], [0.790, 0.610, 0.125, 0.009]]
       },
       {
-        sector: "02", title: "逆流", fade: 1250, pulseSpeed: 0.69, monsterSpeed: 0.097,
+        sector: "02", title: "逆流", fade: 1250, pulseSpeed: 0.69, pulseRange: 0.56, monsterSpeed: 0.097, chargeCooldown: 2700, alertGain: 0.36,
         player: [0.090, 0.140], exit: [0.920, 0.865], monsters: [[0.270, 0.660], [0.560, 0.380]],
+        shards: [[0.300, 0.560], [0.680, 0.730]],
         walls: [...BORDER, [0.190, 0.120, 0.008, 0.580], [0.190, 0.700, 0.180, 0.009], [0.370, 0.245, 0.008, 0.600], [0.370, 0.245, 0.210, 0.009], [0.570, 0.090, 0.008, 0.510], [0.570, 0.600, 0.180, 0.009], [0.750, 0.300, 0.008, 0.570], [0.750, 0.300, 0.150, 0.009], [0.090, 0.360, 0.160, 0.009], [0.440, 0.760, 0.170, 0.009], [0.845, 0.645, 0.090, 0.009]]
       },
       {
-        sector: "03", title: "深井", fade: 900, pulseSpeed: 0.65, monsterSpeed: 0.118,
+        sector: "03", title: "深井", fade: 900, pulseSpeed: 0.65, pulseRange: 0.50, monsterSpeed: 0.118, chargeCooldown: 3100, alertGain: 0.42,
         player: [0.090, 0.865], exit: [0.915, 0.130], monsters: [[0.240, 0.265], [0.610, 0.360], [0.775, 0.690]],
+        shards: [[0.220, 0.560], [0.570, 0.310], [0.800, 0.650]],
         walls: [...BORDER, [0.140, 0.120, 0.008, 0.620], [0.140, 0.350, 0.150, 0.009], [0.290, 0.210, 0.008, 0.620], [0.290, 0.210, 0.160, 0.009], [0.450, 0.100, 0.008, 0.500], [0.450, 0.600, 0.190, 0.009], [0.640, 0.250, 0.008, 0.590], [0.640, 0.250, 0.210, 0.009], [0.840, 0.100, 0.008, 0.460], [0.710, 0.740, 0.160, 0.009], [0.455, 0.785, 0.008, 0.105], [0.120, 0.790, 0.130, 0.009], [0.815, 0.610, 0.100, 0.009]]
       }
     ];
     const DEMO = new URLSearchParams(location.search).has("demo");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
-    let player, exit, monsters, pulses, reveal, keys, state, sonarCount, audio, lastEchoAt, lastDemoAt, levelIndex = 0;
+    let player, exit, monsters, shards, pulses, reveal, keys, state, sonarCount, audio, lastEchoAt, lastDemoAt, levelIndex = 0;
+    let charge = 3, chargeMax = 3, nextChargeAt = 0, pressure = 0, shardsCollected = 0, exitLockedUntil = 0, resourceNoticeUntil = 0;
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
@@ -113,22 +133,42 @@
       countEl.textContent = String(sonarCount).padStart(2, "0");
     }
 
+    function updateResources(now = performance.now()) {
+      chargePipsEl.querySelectorAll("i").forEach((pip, index) => pip.className = index < charge ? "ready" : "");
+      pressureEl.textContent = `警觉 // ${String(Math.round(pressure * 100)).padStart(2, "0")}`;
+      pressureEl.classList.toggle("high", pressure >= .62);
+      shardCountEl.textContent = `${String(shardsCollected).padStart(2, "0")} / ${String(shards.length).padStart(2, "0")}`;
+      const unlocked = shardsCollected === shards.length;
+      exitStateEl.textContent = unlocked ? "出口已解锁" : "出口封存";
+      exitStateEl.classList.toggle("unlocked", unlocked);
+      if (now < resourceNoticeUntil) signalEl.classList.add("hot");
+    }
+
     function loadLevel(index, resetCount = false) {
       levelIndex = clamp(index, 0, LEVELS.length - 1);
       const level = currentLevel();
       player = { ...pointAt(level.player), r: 5.2, exposedUntil: 0 };
-      exit = { ...pointAt(level.exit), r: 7, revealUntil: 0 };
+      exit = { ...pointAt(level.exit), r: 7, revealUntil: 0, unlocked: false };
       monsters = level.monsters.map((spawn, monsterIndex) => ({
         ...pointAt(spawn), r: 10, id: monsterIndex, revealUntil: 0, target: null, mode: "idle", searchUntil: 0, phase: Math.random() * Math.PI * 2
       }));
+      shards = level.shards.map((spawn, shardIndex) => ({ ...pointAt(spawn), r: 6, id: shardIndex, revealUntil: 0, collected: false }));
       pulses = [];
       reveal = new Array(level.walls.length).fill(0);
       keys = Object.create(null);
       state = "playing";
       if (resetCount) sonarCount = 0;
+      chargeMax = 3;
+      charge = chargeMax;
+      nextChargeAt = 0;
+      pressure = 0;
+      shardsCollected = 0;
+      exitLockedUntil = 0;
+      resourceNoticeUntil = 0;
       lastEchoAt = 0;
       lastDemoAt = performance.now() - 1800;
       updateProgress();
+      updateResources();
       statusEl.classList.remove("visible");
       statusEl.classList.remove("interlevel");
       hintEl.style.opacity = "1";
@@ -150,7 +190,7 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (player) {
         const sx = width / oldWidth, sy = height / oldHeight;
-        [player, exit, ...monsters].forEach(entity => { entity.x *= sx; entity.y *= sy; });
+        [player, exit, ...monsters, ...shards].forEach(entity => { entity.x *= sx; entity.y *= sy; });
         pulses.forEach(pulse => { pulse.x *= sx; pulse.y *= sy; pulse.radius *= Math.min(sx, sy); });
       }
     }
@@ -195,6 +235,8 @@
 
     function sonarSound() { tone(112, 0.62, 0.072, "sine", 42); tone(57, 0.54, 0.035, "triangle", 35); }
     function echoSound(kind) { tone(kind === "monster" ? 420 : 620, kind === "monster" ? 0.10 : 0.075, 0.018, "sine", kind === "monster" ? 270 : 430); }
+    function shardSound() { tone(784, 0.12, 0.026, "sine", 1047); tone(523, 0.20, 0.018, "triangle", 784); }
+    function lockedSound() { tone(93, 0.10, 0.03, "triangle", 62); }
     function failureSound() {
       if (!audio) return;
       const now = audio.currentTime;
@@ -212,11 +254,21 @@
       if (state !== "playing") return;
       const now = performance.now();
       ensureAudio();
+      if (charge <= 0) {
+        resourceNoticeUntil = now + 650;
+        lockedSound();
+        updateResources(now);
+        return;
+      }
+      charge -= 1;
+      if (!nextChargeAt) nextChargeAt = now + currentLevel().chargeCooldown;
+      pressure = clamp(pressure + currentLevel().alertGain, 0, 1);
       sonarSound();
-      pulses.push({ id: ++pulseId, x: player.x, y: player.y, radius: 0, previousRadius: 0, max: Math.hypot(width, height) * 0.78, speed: Math.min(width, height) * currentLevel().pulseSpeed, hitWalls: new Set(), hitMonsters: new Set(), hitExit: false });
+      pulses.push({ id: ++pulseId, x: player.x, y: player.y, radius: 0, previousRadius: 0, max: Math.hypot(width, height) * currentLevel().pulseRange, speed: Math.min(width, height) * currentLevel().pulseSpeed, hitWalls: new Set(), hitMonsters: new Set(), hitShards: new Set(), hitExit: false });
       player.exposedUntil = now + 450;
       sonarCount += 1;
       countEl.textContent = String(sonarCount).padStart(2, "0");
+      updateResources(now);
       hintEl.style.opacity = "0";
     }
 
@@ -243,6 +295,19 @@
           if (now - lastEchoAt > 76) { echoSound("monster"); lastEchoAt = now; }
         }
       });
+      shards.forEach(shard => {
+        const distanceToShard = dist(pulse.x, pulse.y, shard.x, shard.y);
+        if (!shard.collected && !pulse.hitShards.has(shard.id) && distanceToShard > pulse.previousRadius - shard.r && distanceToShard <= pulse.radius + shard.r) {
+          pulse.hitShards.add(shard.id);
+          shard.collected = true;
+          shard.revealUntil = now + currentLevel().fade * 1.3;
+          shardsCollected += 1;
+          exit.unlocked = shardsCollected === shards.length;
+          resourceNoticeUntil = now + 520;
+          shardSound();
+          updateResources(now);
+        }
+      });
       const distanceToExit = dist(pulse.x, pulse.y, exit.x, exit.y);
       if (!pulse.hitExit && distanceToExit > pulse.previousRadius - exit.r && distanceToExit <= pulse.radius + exit.r) {
         pulse.hitExit = true; exit.revealUntil = now + currentLevel().fade * 1.8; echoSound("wall");
@@ -261,8 +326,9 @@
         statusEl.querySelector(".message").classList.remove("danger");
         tone(220, 0.42, 0.05, "sine", 340);
         if (levelIndex === LEVELS.length - 1) {
+          const rating = sonarCount <= 16 ? "静默穿越" : sonarCount <= 28 ? "受控残响" : "失真记录";
           statusTitle.textContent = "回声已抵达尽头";
-          statusCopy.textContent = `完整记录：${LEVELS.length} 个扇区 · 声呐 ${String(sonarCount).padStart(2, "0")} 次 · R 重新进入`;
+          statusCopy.textContent = `完整记录：${LEVELS.length} 个扇区 · 声呐 ${String(sonarCount).padStart(2, "0")} 次 · ${rating} · R 重新进入`;
         } else {
           state = "interlevel";
           statusEl.classList.add("interlevel");
@@ -288,7 +354,7 @@
           const dx = monster.target.x - monster.x, dy = monster.target.y - monster.y;
           const length = Math.hypot(dx, dy);
           if (length < 7) { monster.mode = "search"; monster.searchUntil = now + 2000; }
-          else { const speed = Math.min(width, height) * currentLevel().monsterSpeed; move(monster, dx / length * speed * delta, dy / length * speed * delta); }
+          else { const speed = Math.min(width, height) * currentLevel().monsterSpeed * (1 + pressure * .78); move(monster, dx / length * speed * delta, dy / length * speed * delta); }
         } else if (monster.mode === "search" && now > monster.searchUntil) { monster.mode = "idle"; monster.target = null; }
         if (dist(player.x, player.y, monster.x, monster.y) < player.r + monster.r + 2) endGame("lost");
       });
@@ -296,12 +362,22 @@
 
     function update(delta, now) {
       if (state === "playing") {
+        pressure = Math.max(0, pressure - delta * .052);
+        if (charge < chargeMax && now >= nextChargeAt) {
+          charge += 1;
+          nextChargeAt = charge < chargeMax ? now + currentLevel().chargeCooldown : 0;
+          if (audio) tone(350, 0.055, 0.012, "sine", 470);
+        }
         if (DEMO) { if (now - lastDemoAt > 2100) { emitPulse(); lastDemoAt = now; } }
         else updatePlayer(delta);
         pulses.forEach(pulse => { pulse.previousRadius = pulse.radius; pulse.radius += pulse.speed * delta; scanPulse(pulse, now); });
         pulses = pulses.filter(pulse => pulse.radius < pulse.max);
         updateMonsters(delta, now);
-        if (dist(player.x, player.y, exit.x, exit.y) < player.r + exit.r + 2) endGame("won");
+        if (dist(player.x, player.y, exit.x, exit.y) < player.r + exit.r + 2) {
+          if (exit.unlocked) endGame("won");
+          else if (now > exitLockedUntil) { exitLockedUntil = now + 650; resourceNoticeUntil = now + 650; lockedSound(); }
+        }
+        updateResources(now);
       }
     }
 
@@ -345,8 +421,23 @@
       ctx.restore();
     }
 
+    function drawShard(shard, now) {
+      const alpha = alphaUntil(shard.revealUntil, now);
+      if (alpha <= 0) return;
+      ctx.save();
+      ctx.translate(shard.x, shard.y);
+      ctx.rotate(Math.PI / 4);
+      ctx.globalAlpha = Math.pow(alpha, .56);
+      ctx.strokeStyle = COLORS.gold;
+      ctx.lineWidth = 1.15;
+      ctx.shadowColor = "rgba(211,170,88,.82)";
+      ctx.shadowBlur = 9;
+      ctx.strokeRect(-3.2, -3.2, 6.4, 6.4);
+      ctx.restore();
+    }
+
     function drawExit(now) {
-      const alpha = alphaUntil(exit.revealUntil, now);
+      const alpha = exit.unlocked ? Math.max(alphaUntil(exit.revealUntil, now), .26) : alphaUntil(exit.revealUntil, now);
       if (alpha <= 0) return;
       ctx.save();
       ctx.globalAlpha = Math.pow(alpha, .62);
@@ -383,12 +474,20 @@
     function render(now) {
       ctx.clearRect(0, 0, width, height);
       const exposed = now < player.exposedUntil;
-      signalEl.textContent = exposed ? "暴露已记录" : "波段：静默";
-      signalEl.classList.toggle("hot", exposed);
+      const exitBlocked = now < exitLockedUntil;
+      const resourceNotice = now < resourceNoticeUntil;
+      if (exitBlocked) signalEl.textContent = `出口封存 // ${shards.length - shardsCollected} 记录缺失`;
+      else if (charge <= 0 && resourceNotice) signalEl.textContent = "回响电荷耗尽";
+      else if (resourceNotice && shardsCollected > 0) signalEl.textContent = exit.unlocked ? "出口已获准" : "回声碎片已记录";
+      else if (exposed) signalEl.textContent = "暴露已记录";
+      else if (pressure >= .62) signalEl.textContent = "警觉上升";
+      else signalEl.textContent = "波段：静默";
+      signalEl.classList.toggle("hot", exposed || resourceNotice || pressure >= .62);
       pulses.forEach(drawPulse);
       const screenWalls = walls();
       screenWalls.forEach((wall, index) => drawWall(wall, alphaUntil(reveal[index], now)));
       drawExit(now);
+      shards.forEach(shard => drawShard(shard, now));
       monsters.forEach(monster => drawMonster(monster, now));
       drawPlayer(now);
     }
