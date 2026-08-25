@@ -11,8 +11,9 @@
     * { box-sizing: border-box; }
     html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
     body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
-    #game-canvas { display: block; width: 100vw; height: 100vh; background: #000; cursor: crosshair; touch-action: none; }
+    #game-canvas { display: block; width: 100vw; height: 100vh; background: #000; cursor: crosshair; touch-action: none; will-change: transform; }
     .hud { position: fixed; z-index: 2; pointer-events: none; user-select: none; }
+    #threat-veil { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0; background:radial-gradient(ellipse at center, transparent 39%, rgba(0,0,0,.18) 65%, rgba(20,0,0,.84) 100%); mix-blend-mode:multiply; transition:opacity .16s linear; }
     #brand { top: 16px; left: 20px; display: flex; align-items: center; gap: 11px; color: rgba(255,255,255,.53); font-size: 10px; letter-spacing: .26em; text-transform: uppercase; }
     #brand .mark-wrap { position: relative; display: block; width: 30px; height: 30px; }
     #brand img, #brand .sonar-mark { position: absolute; inset: 0; width: 30px; height: 30px; display: block; object-fit: contain; }
@@ -46,6 +47,8 @@
     #exit-state.unlocked { color: rgba(211,170,88,.72); }
     #log-line { left: 20px; bottom: 52px; max-width: min(56vw, 510px); color: rgba(227,191,114,.64); font-size: 9px; letter-spacing: .12em; line-height: 1.8; transition: opacity .25s ease; }
     #hint { left: 20px; bottom: 18px; color: rgba(255,255,255,.28); font-size: 8px; letter-spacing: .13em; line-height: 2.05; transition: opacity .65s ease; }
+    #settings-trigger { position:fixed; z-index:3; top:146px; right:24px; border:0; padding:0; background:transparent; color:rgba(246,246,242,.31); font:inherit; font-size:8px; letter-spacing:.15em; cursor:pointer; transition:color .16s ease; }
+    #settings-trigger:hover { color:rgba(211,170,88,.86); }
     #status { position: fixed; inset: 0; z-index: 4; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity .3s ease; background: rgba(0,0,0,.14); }
     #status.visible { opacity: 1; pointer-events: auto; cursor: crosshair; }
     #status .message { width: min(78vw, 620px); transform: translateY(-3vh); text-align: center; color: #f2f2f0; text-shadow: 0 0 18px rgba(255,255,255,.19); }
@@ -97,18 +100,34 @@
     .replay-item .score { color:rgba(246,246,242,.39); font-size:8px; letter-spacing:.13em; text-align:right; line-height:1.9; }
     .replay-item .badge { color:rgba(211,170,88,.68); }
     #replay-note { margin:20px 0 0; color:rgba(246,246,242,.28); font-size:8px; letter-spacing:.14em; line-height:1.8; }
+    #settings { position:fixed; inset:0; z-index:8; display:grid; place-items:center; padding:22px; pointer-events:none; opacity:0; transition:opacity .22s ease; background:rgba(0,0,0,.46); }
+    #settings.visible { opacity:1; pointer-events:auto; }
+    .settings-panel { position:relative; width:min(82vw,540px); padding:clamp(28px,5vw,52px) clamp(36px,6vw,78px); color:rgba(246,246,242,.84); }
+    .settings-panel::before { content:""; position:absolute; top:17px; left:18px; width:58px; height:58px; border:1px solid rgba(246,246,242,.28); border-right-color:transparent; border-bottom-color:transparent; border-radius:50%; transform:rotate(-34deg); }
+    .settings-panel::after { content:""; position:absolute; top:44px; left:46px; width:3px; height:3px; border-radius:50%; background:rgba(246,246,242,.84); }
+    #settings-close { position:absolute; top:20px; right:10px; border:0; padding:0; background:transparent; color:rgba(246,246,242,.45); font:inherit; font-size:10px; letter-spacing:.16em; cursor:pointer; }
+    #settings-close:hover { color:rgba(246,246,242,.92); }
+    .settings-kicker { margin:0 0 28px; color:rgba(246,246,242,.42); font-size:9px; letter-spacing:.22em; }
+    .settings-panel h2 { margin:0 0 8px; font:400 clamp(25px,3.8vw,39px)/1.1 Georgia,"Times New Roman",serif; letter-spacing:.08em; }
+    .settings-meta { margin:0 0 32px; color:rgba(246,246,242,.32); font-size:8px; letter-spacing:.14em; line-height:1.8; }
+    .setting-row { display:grid; grid-template-columns:1fr auto; gap:8px 20px; padding:15px 0; border-top:1px solid rgba(246,246,242,.10); color:rgba(246,246,242,.66); font-size:10px; letter-spacing:.14em; }
+    .setting-row strong { color:rgba(246,246,242,.72); font-size:9px; font-weight:400; }
+    .setting-row input { grid-column:1 / -1; width:100%; height:4px; accent-color:#f6f6f2; cursor:pointer; background:repeating-linear-gradient(90deg, rgba(246,246,242,.22) 0 1px, transparent 1px 12px); }
+    .settings-foot { margin:24px 0 0; color:rgba(246,246,242,.28); font-size:8px; letter-spacing:.14em; line-height:1.8; }
     @media (max-width: 560px) {
       #brand { top: 11px; left: 14px; } #brand .wordmark { display: none; }
       #chapter { top: 70px; left: 14px; } #usage { top: 14px; right: 14px; }
       #resources { top: 52px; right: 14px; } #objective { right: 14px; bottom: 13px; }
       #log-line { left: 14px; bottom: 52px; max-width: 54vw; font-size: 8px; }
       #hint { left: 14px; bottom: 13px; max-width: 160px; font-size: 8px; }
+      #settings-trigger { top:134px; right:14px; }
     }
     @media (prefers-reduced-motion: reduce) { #status, #hint, #log-line { transition: none; } }
   </style>
 </head>
 <body>
   <canvas id="game-canvas" aria-label="回声 Sonar 游戏画布"></canvas>
+  <div id="threat-veil" aria-hidden="true"></div>
   <div id="brand" class="hud"><span class="mark-wrap" aria-hidden="true"><svg class="sonar-mark" viewBox="0 0 24 24"><path d="M12 3 A9 9 0 1 0 20.5 8.9"/><circle cx="12" cy="12" r="1.55"/><line x1="19.2" y1="4.8" x2="21.4" y2="2.6"/></svg><img src="/manus-storage/sonar-logo_9e3805c0.png" alt="" onerror="this.style.display='none'" /></span><span class="wordmark">回声 // SONAR<small>ACOUSTIC RECORD // 01</small></span></div>
   <div id="chapter" class="hud"><strong id="chapter-label">章节 I / IV</strong><div id="chapter-pips" aria-hidden="true"><i class="active"></i><i></i><i></i><i></i></div><span id="chapter-name">静水观测</span></div>
   <div id="usage" class="hud">声呐使用次数<strong id="count">00</strong></div>
@@ -116,10 +135,12 @@
   <div id="objective" class="hud">章节记录<strong id="record-count">00 / 00</strong><span id="exit-state">出口封存</span></div>
   <div id="log-line" class="hud"></div>
   <div id="hint" class="hud">输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）</div>
+  <button id="settings-trigger" type="button">监听设置 // ESC</button>
   <div id="status"><div class="message"><p id="status-eyebrow" class="eyebrow"></p><h1 id="status-title"></h1><p id="status-copy"></p></div></div>
   <div id="signal-glitch" aria-hidden="true"></div>
   <section id="archive" aria-label="设备档案" aria-hidden="true"><div class="archive-panel"><button id="archive-replay" type="button">章节回放 // C</button><button id="archive-close" type="button">关闭 // X</button><p id="archive-kicker" class="archive-kicker">设备档案 // AR-01</p><h2 id="archive-title">失落信号</h2><p id="archive-meta" class="archive-meta">监听站 17 · 回收介质</p><p id="archive-evidence"></p><div id="archive-body"></div><div class="archive-nav"><button id="archive-prev" type="button">← 上一页</button><span id="archive-page">AR-01 · 01 / 03</span><button id="archive-next" type="button">下一页 →</button></div></div></section>
   <section id="replay" aria-label="章节回放" aria-hidden="true"><div class="replay-panel"><button id="replay-close" type="button">关闭 // X</button><p class="replay-kicker">章节回放 // 已恢复记录</p><h2>回收记录</h2><p class="replay-meta">每次通过仅覆盖更高完整度。选择记录后重载对应章节。</p><div id="replay-list"></div><p id="replay-note">未恢复的章节尚不可读取。</p></div></section>
+  <section id="settings" aria-label="监听设置" aria-hidden="true"><div class="settings-panel"><button id="settings-close" type="button">关闭 // X</button><p class="settings-kicker">监听记录 // 本地参数</p><h2>监听校准</h2><p class="settings-meta">输出总线 // 即时校准 · 本地保留</p><label class="setting-row"><span>主输出 // 01</span><strong id="volume-value">70%</strong><input id="volume-control" type="range" min="0" max="100" step="1" value="70" /></label><label class="setting-row"><span>低频载荷 // 02</span><strong id="bass-value">65%</strong><input id="bass-control" type="range" min="0" max="100" step="1" value="65" /></label><p class="settings-foot">Esc // 关闭 · M // 静音<br>立体声通道 // 建议保留</p></div></section>
 
   <script>
   (() => {
@@ -127,6 +148,7 @@
 
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
+    const threatVeilEl = document.getElementById("threat-veil");
     const chapterEl = document.getElementById("chapter");
     const usageEl = document.getElementById("usage");
     const resourcesEl = document.getElementById("resources");
@@ -162,6 +184,13 @@
     const replayEl = document.getElementById("replay");
     const replayListEl = document.getElementById("replay-list");
     const replayCloseEl = document.getElementById("replay-close");
+    const settingsEl = document.getElementById("settings");
+    const settingsTriggerEl = document.getElementById("settings-trigger");
+    const settingsCloseEl = document.getElementById("settings-close");
+    const volumeControlEl = document.getElementById("volume-control");
+    const bassControlEl = document.getElementById("bass-control");
+    const volumeValueEl = document.getElementById("volume-value");
+    const bassValueEl = document.getElementById("bass-value");
 
     const COLORS = { white: "#f6f6f2", red: "#a12a30", gold: "#d3aa58" };
     const LOW_PULSE_LIMITS = [8,9,10,11];
@@ -207,17 +236,21 @@
     const PREVIEW_ARCHIVE = QUERY.has("archive");
     const PREVIEW_REPLAY = QUERY.has("replay");
     const PREVIEW_ENDING = QUERY.get("ending");
+    const PREVIEW_SETTINGS = QUERY.has("settings");
+    const PREVIEW_THREAT = QUERY.has("threat");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
     let chapterIndex = 0, state = "prologue-title", player, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue, ambientCue, audioGraph;
     let sonarCount = 0, runDeaths = 0, charge = 3, nextChargeAt = 0, alert = 0, lastEchoAt = 0, logUntil = 0, huntUntil = 0, lastHuntTargetAt = 0, lastDemoAt = 0;
     let activeChapter = -1, chapterFailures = 0, chapterStartSonar = 0, chapterIntegrity = 100;
     let archiveStore = (() => { try { const legacy = localStorage.getItem("sonar-ar01") === "1"; const stored = JSON.parse(localStorage.getItem("sonar-archives") || "{}"); if (legacy && !stored["AR-01"]) stored["AR-01"] = 100; return stored; } catch { return {}; } })();
-    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null;
+    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", settingsReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null, threatLevel = 0;
     let bestStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-best-integrity") || "{}"); } catch { return {}; } })();
     let badgeStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-chapter-badges") || "{}"); } catch { return {}; } })();
     let cueStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-cue-evidence") || "{}"); } catch { return {}; } })();
     let audioMuted = (() => { try { return localStorage.getItem("sonar-audio-muted") === "1"; } catch { return false; } })();
+    let audioPrefs = (() => { try { const saved=JSON.parse(localStorage.getItem("sonar-audio-prefs") || "{}"); return { volume:clamp(Number(saved.volume ?? .70),0,1), bass:clamp(Number(saved.bass ?? .65),0,1) }; } catch { return { volume:.70, bass:.65 }; } })();
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
@@ -233,16 +266,17 @@
     }
     function createAudioGraph() {
       if (audioGraph || !audio) return;
-      const master=audio.createGain(), compressor=audio.createDynamicsCompressor(), bedGain=audio.createGain(), dustGain=audio.createGain(), threatGain=audio.createGain(), dustFilter=audio.createBiquadFilter(), threatFilter=audio.createBiquadFilter(), panner=audio.createStereoPanner();
-      master.gain.value=audioMuted?.0001:.62; compressor.threshold.value=-23; compressor.knee.value=18; compressor.ratio.value=7; compressor.attack.value=.018; compressor.release.value=.24;
-      bedGain.gain.value=.0001; dustGain.gain.value=.0001; threatGain.gain.value=.0001; dustFilter.type="bandpass"; dustFilter.frequency.value=380; dustFilter.Q.value=.42; threatFilter.type="lowpass"; threatFilter.frequency.value=88; threatFilter.Q.value=1.1;
-      master.connect(compressor).connect(audio.destination); bedGain.connect(master); dustGain.connect(panner).connect(master); threatGain.connect(threatFilter).connect(master);
+      const master=audio.createGain(), compressor=audio.createDynamicsCompressor(), bedGain=audio.createGain(), dustGain=audio.createGain(), threatGain=audio.createGain(), monsterBus=audio.createGain(), dustFilter=audio.createBiquadFilter(), threatFilter=audio.createBiquadFilter(), panner=audio.createStereoPanner();
+      master.gain.value=audioMuted?.0001:.62*audioPrefs.volume; compressor.threshold.value=-23; compressor.knee.value=18; compressor.ratio.value=7; compressor.attack.value=.018; compressor.release.value=.24;
+      bedGain.gain.value=.0001; dustGain.gain.value=.0001; threatGain.gain.value=.0001; monsterBus.gain.value=.0001; dustFilter.type="bandpass"; dustFilter.frequency.value=380; dustFilter.Q.value=.42; threatFilter.type="lowpass"; threatFilter.frequency.value=88; threatFilter.Q.value=1.1;
+      master.connect(compressor).connect(audio.destination); bedGain.connect(master); dustGain.connect(panner).connect(master); threatGain.connect(threatFilter).connect(master); monsterBus.connect(master);
       const sub=audio.createOscillator(), drone=audio.createOscillator(), threat=audio.createOscillator(), noise=audio.createBufferSource();
       sub.type="sine"; sub.frequency.value=41; drone.type="sine"; drone.frequency.value=62.4; threat.type="triangle"; threat.frequency.value=31; noise.buffer=makeNoiseBuffer(); noise.loop=true;
       const subGain=audio.createGain(), droneGain=audio.createGain(); subGain.gain.value=.032; droneGain.gain.value=.012;
       sub.connect(subGain).connect(bedGain); drone.connect(droneGain).connect(bedGain); noise.connect(dustFilter).connect(dustGain); threat.connect(threatGain);
       const now=audio.currentTime; [sub,drone,threat,noise].forEach(node=>node.start(now));
-      audioGraph={master,bedGain,dustGain,dustFilter,threatGain,threatFilter,panner,sub,drone,threat,noise};
+      audioGraph={master,bedGain,dustGain,dustFilter,threatGain,threatFilter,monsterBus,panner,sub,drone,threat,noise,monsterVoices:[]};
+      refreshMonsterVoices();
     }
     function outputBus() { return audioGraph ? audioGraph.master : audio?.destination; }
     function tone(frequency, duration, volume, type = "sine", slideTo = null, pan = 0) {
@@ -253,6 +287,21 @@
       oscillator.connect(gain).connect(panner).connect(outputBus()); oscillator.start(now); oscillator.stop(now+duration+.04);
     }
     function ensureAudio() { if(!audio) audio=new (window.AudioContext||window.webkitAudioContext)(); if(audio.state==="suspended") audio.resume(); createAudioGraph(); }
+    function clearMonsterVoices() { if(!audioGraph?.monsterVoices) return; audioGraph.monsterVoices.forEach(voice=>{ try{voice.osc.stop();voice.noise.stop();}catch{} }); audioGraph.monsterVoices=[]; }
+    function refreshMonsterVoices() {
+      if(!audioGraph||!audio) return;
+      clearMonsterVoices();
+      monsters.forEach((monster,index)=>{
+        const osc=audio.createOscillator(), noise=audio.createBufferSource(), filter=audio.createBiquadFilter(), gain=audio.createGain(), panner=audio.createStereoPanner();
+        osc.type="sawtooth"; osc.frequency.value=48+index*7; noise.buffer=makeNoiseBuffer(3.2); noise.loop=true; filter.type="bandpass"; filter.frequency.value=170; filter.Q.value=1.8; gain.gain.value=.0001;
+        osc.connect(gain); noise.connect(filter).connect(gain); gain.connect(panner).connect(audioGraph.monsterBus); osc.start();noise.start(); audioGraph.monsterVoices.push({monster,osc,noise,filter,gain,panner,index});
+      });
+    }
+    function updateMonsterSpatial(now=performance.now()) {
+      if(!audioGraph?.monsterVoices?.length||!player) return;
+      const active=state==="playing", sheltered=active&&isSheltered(), hunt=active&&huntUntil>now, scale=Math.min(width,height), time=audio.currentTime;
+      audioGraph.monsterVoices.forEach(voice=>{ const monster=voice.monster, distance=dist(player.x,player.y,monster.x,monster.y), near=clamp(1-distance/(scale*.58),0,1), lateral=clamp((monster.x-player.x)/(scale*.34),-1,1), intensity=active&&!sheltered?(near*near*(hunt?1.35:1)):.0; voice.gain.gain.setTargetAtTime(.0001+intensity*.032,time,.11); voice.panner.pan.setTargetAtTime(lateral,time,.12); voice.filter.frequency.setTargetAtTime(120+near*1180+(hunt?230:0),time,.16); voice.filter.Q.setTargetAtTime(1.4+near*4.8,time,.16); voice.osc.frequency.setTargetAtTime(43+near*33+(hunt?12:0)+Math.sin(now*.002+voice.index)*2,time,.20); });
+    }
     function noiseBurst(duration=.7,volume=.034,frequency=1200,q=.7,pan=0) {
       if(!audio) return;
       const source=audio.createBufferSource(), filter=audio.createBiquadFilter(), gain=audio.createGain(), panner=audio.createStereoPanner(), now=audio.currentTime;
@@ -263,12 +312,14 @@
     function updateAudioMix(now=performance.now()) {
       if(!audioGraph||!audio) return;
       const time=audio.currentTime, active=state==="playing"||state.startsWith("prologue"), sheltered=state==="playing"&&isSheltered(), hunt=state==="playing"&&huntUntil>now, menu=state==="archive"||state==="replay"||state==="brief"||state==="interchapter";
-      const base=active?.034:.011, dust=active?(sheltered?.007:.018+alert*.015):.005, threat=active&&!sheltered?(hunt?.050:.005+alert*.021):.0001;
-      audioGraph.master.gain.setTargetAtTime(audioMuted?.0001:.62,time,.08); audioGraph.bedGain.gain.setTargetAtTime(base,time,.7); audioGraph.dustGain.gain.setTargetAtTime(menu?dust*.42:dust,time,.5); audioGraph.threatGain.gain.setTargetAtTime(threat,time,.11);
+      const base=active?.034:.011, dust=active?(sheltered?.007:.018+alert*.015):.005, threat=active&&!sheltered?(hunt?.050:.005+alert*.021):.0001, bass=.28+audioPrefs.bass*.72;
+      audioGraph.master.gain.setTargetAtTime(audioMuted?.0001:.62*audioPrefs.volume,time,.08); audioGraph.bedGain.gain.setTargetAtTime(base*bass,time,.7); audioGraph.dustGain.gain.setTargetAtTime(menu?dust*.42:dust,time,.5); audioGraph.threatGain.gain.setTargetAtTime(threat*bass,time,.11); audioGraph.monsterBus.gain.setTargetAtTime(active?.82:.18,time,.18);
       audioGraph.dustFilter.frequency.setTargetAtTime(280+alert*860+(hunt?390:0),time,.32); audioGraph.threatFilter.frequency.setTargetAtTime(hunt?170:78+alert*72,time,.14); audioGraph.panner.pan.setTargetAtTime(Math.sin(now*.00011)*.24,time,1.8);
-      audioGraph.sub.detune.setTargetAtTime((hunt?8:0)+Math.sin(now*.0004)*3,time,.8); audioGraph.drone.detune.setTargetAtTime((sheltered?-5:0)+Math.sin(now*.00031)*2,time,1.2);
+      audioGraph.sub.detune.setTargetAtTime((hunt?8:0)+Math.sin(now*.0004)*3,time,.8); audioGraph.drone.detune.setTargetAtTime((sheltered?-5:0)+Math.sin(now*.00031)*2,time,1.2); updateMonsterSpatial(now);
     }
     function toggleMute() { audioMuted=!audioMuted; try{localStorage.setItem("sonar-audio-muted",audioMuted?"1":"0");}catch{} if(audioGraph) updateAudioMix(); showLog(audioMuted?"监听输出 // 静音。":"监听输出 // 已恢复。",1800); }
+    function persistAudioPrefs() { try{localStorage.setItem("sonar-audio-prefs",JSON.stringify(audioPrefs));}catch{} }
+    function updateSettingsUi() { volumeControlEl.value=String(Math.round(audioPrefs.volume*100)); bassControlEl.value=String(Math.round(audioPrefs.bass*100)); volumeValueEl.textContent=`${Math.round(audioPrefs.volume*100)}%`; bassValueEl.textContent=`${Math.round(audioPrefs.bass*100)}%`; }
     function sonarSound() { noiseBurst(.28,.022,155,.8,-.05); tone(108,.72,.052,"sine",39,-.10); tone(48,.58,.026,"triangle",31,.12); tone(1480,.075,.008,"sine",720,.24); }
     function echoSound(kind) { if(kind==="monster"){noiseBurst(.13,.014,430,3,.18);tone(178,.15,.019,"sine",108,.18);}else{noiseBurst(.075,.010,1300,5,-.12);tone(690,.08,.012,"sine",465,-.14);} }
     function recordSound() { noiseBurst(.18,.012,2200,4,.16); tone(612,.18,.018,"sine",980,.12); tone(932,.11,.010,"triangle",1350,.22); }
@@ -343,6 +394,14 @@
       if (state !== "replay") return;
       state = replayReturnState; replayEl.classList.remove("visible"); replayEl.setAttribute("aria-hidden","true");
     }
+    function openSettings() {
+      if (state === "settings" || state === "archive" || state === "replay") return;
+      settingsReturnState = state; state = "settings"; updateSettingsUi(); settingsEl.classList.add("visible"); settingsEl.setAttribute("aria-hidden","false");
+    }
+    function closeSettings() {
+      if (state !== "settings") return;
+      state = settingsReturnState; settingsEl.classList.remove("visible"); settingsEl.setAttribute("aria-hidden","true");
+    }
     function startReplay(index) {
       if (index >= unlockedChapterCount()) return;
       replayIndex = index; replayMode = true; replayEl.classList.remove("visible"); replayEl.setAttribute("aria-hidden","true");
@@ -410,7 +469,8 @@
       setGameplayHud(false);
       hintEl.style.opacity = "0";
       showLog("失落信号 // 等待接通。", 4200);
-      showStatus("brief", "失落信号 // 00", "回声", "拾取失落信号 · ENTER / 左键");
+      if (audioGraph) refreshMonsterVoices();
+      showStatus("brief", "失落信号 // 00", "回声", "拾取失落信号 · ENTER / 左键 · ESC 监听设置");
     }
     function beginPrologue() {
       if (state !== "prologue-title") return;
@@ -489,6 +549,7 @@
       exit = { ...pointAt(chapter.exit), r:7, revealUntil:0, unlocked:false };
       ambientCue = { ...pointAt(chapter.cue.p), type:chapter.cue.type, line:chapter.cue.line, r:Math.min(width,height)*.072, triggered:false };
       monsters = chapter.monsters.map((monster, id) => ({ ...pointAt(monster.p), id, r:10, route:monster.route.map(pointAt), routeIndex:0, speed:monster.speed, target:null, mode:"patrol", searchUntil:0, revealUntil:0, phase:Math.random() * Math.PI * 2 }));
+      if (audioGraph) refreshMonsterVoices();
       records = chapter.records.map((record, id) => ({ ...pointAt(record.p), id, r:7, line:record.line, grant:record.grant, trigger:record.trigger, collected:false, revealUntil:0 }));
       shelters = chapter.shelters.map(([x,y,r]) => ({ x:x * width, y:y * height, r:r * Math.min(width,height), revealUntil:0 }));
       pulses = []; traces = []; reveal = new Array(chapter.walls.length).fill(0); keys = Object.create(null); bait = null;
@@ -571,8 +632,17 @@
     }
     function updateBait(now) { if (!bait) return; if (now >= bait.armedAt) bait.ready = true; if (bait.ready && bait.pulsesLeft > 0 && now >= bait.nextPulseAt) { const pulse = makePulse(bait.x,bait.y,"bait"); pulse.max = Math.min(width,height) * .38; pulses.push(pulse); bait.pulsesLeft -= 1; bait.nextPulseAt = now + 950; baitSound(); } if (now >= bait.expiresAt) { bait = null; showLog("诱饵静默。",1500); } }
     function updateAmbientCue() { if (!ambientCue || ambientCue.triggered || dist(player.x,player.y,ambientCue.x,ambientCue.y) > ambientCue.r) return; ambientCue.triggered = true; markCueConfirmed(chapterIndex); environmentCueSound(ambientCue.type); showLog(`${ambientCue.line} 线索已证实。`,3200); }
+    function updateThreatFeedback(now) {
+      const active=state==="playing"&&monsters?.length, scale=Math.min(width,height);
+      if (!active) { threatLevel=0; threatVeilEl.style.opacity="0"; canvas.style.transform="translate3d(0,0,0)"; return; }
+      const closest=Math.min(...monsters.map(monster=>dist(player.x,player.y,monster.x,monster.y))); const proximity=clamp(1-closest/(scale*.42),0,1), hunt=huntUntil>now?1:0;
+      threatLevel=clamp(Math.max(alert*.58,proximity*.92,hunt*.74),0,1); threatVeilEl.style.opacity=String(Math.pow(threatLevel,1.7)*.76);
+      if (reduceMotion || threatLevel<.34) { canvas.style.transform="translate3d(0,0,0)"; return; }
+      const amplitude=(threatLevel-.32)*3.4, x=Math.sin(now*.043)*amplitude, y=Math.cos(now*.057)*amplitude*.62; canvas.style.transform=`translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0)`;
+    }
     function update(delta, now) {
       updateAudioMix(now);
+      updateThreatFeedback(now);
       if (state.startsWith("prologue")) { updatePrologue(delta,now); return; }
       if (state !== "playing") return;
       alert = Math.max(0,alert - delta*.043);
@@ -587,7 +657,7 @@
       updateHud(now);
     }
     function alphaUntil(until, now) { return clamp((until-now)/currentChapter().fade,0,1); }
-    function drawWall(rect, alpha) { if (alpha<=0) return;ctx.save();ctx.strokeStyle=COLORS.white;ctx.lineWidth=1.0;ctx.shadowColor="rgba(255,255,255,.52)";ctx.shadowBlur=3;const horizontal=rect.w>=rect.h,length=horizontal?rect.w:rect.h,minor=horizontal?rect.h*.5:rect.w*.5,ox=rect.x+(horizontal?0:rect.w*.5),oy=rect.y+(horizontal?rect.h*.5:0),cuts=[[.11,.075],[.49,.095],[.85,.032]];cuts.forEach(([o,s],index)=>{ctx.globalAlpha=Math.pow(alpha,2.08)*(.62-index*.17);const a=length*o,b=Math.min(length*(o+s),length);ctx.beginPath();if(horizontal){ctx.moveTo(ox+a,oy+minor*Math.sin(o*21));ctx.lineTo(ox+b,oy-minor*Math.sin(o*19));}else{ctx.moveTo(ox+minor*Math.sin(o*19),oy+a);ctx.lineTo(ox-minor*Math.sin(o*21),oy+b);}ctx.stroke();});ctx.restore(); }
+    function drawWall(rect, alpha) { if (alpha<=0) return;ctx.save();ctx.strokeStyle=COLORS.white;ctx.lineWidth=1.0;ctx.shadowColor="rgba(255,255,255,.52)";ctx.shadowBlur=3;const horizontal=rect.w>=rect.h,length=horizontal?rect.w:rect.h,minor=horizontal?rect.h*.5:rect.w*.5,ox=rect.x+(horizontal?0:rect.w*.5),oy=rect.y+(horizontal?rect.h*.5:0),cuts=[[.14,.052],[.58,.061]];cuts.forEach(([o,s],index)=>{ctx.globalAlpha=Math.pow(alpha,2.55)*(.57-index*.16);const a=length*o,b=Math.min(length*(o+s),length);ctx.beginPath();if(horizontal){ctx.moveTo(ox+a,oy+minor*Math.sin(o*21));ctx.lineTo(ox+b,oy-minor*Math.sin(o*19));}else{ctx.moveTo(ox+minor*Math.sin(o*19),oy+a);ctx.lineTo(ox-minor*Math.sin(o*21),oy+b);}ctx.stroke();});ctx.restore(); }
     function drawPulse(pulse) { const progress=pulse.radius/pulse.max;ctx.save();ctx.globalAlpha=(1-progress)*(pulse.type==="bait"?.45:.94);ctx.strokeStyle=COLORS.white;ctx.lineWidth=pulse.type==="bait"?.8:1.34;ctx.setLineDash(pulse.type==="bait"?[2,8]:[]);ctx.shadowColor="rgba(255,255,255,.64)";ctx.shadowBlur=pulse.type==="bait"?3:8;ctx.beginPath();ctx.arc(pulse.x,pulse.y,pulse.radius,0,Math.PI*2);ctx.stroke();ctx.restore(); }
     function drawTrace(trace, now) { const alpha=clamp((trace.expires-now)/420,0,1);ctx.save();ctx.globalAlpha=alpha*(trace.type==="bait"?.16:.33);ctx.strokeStyle=COLORS.white;ctx.lineWidth=.8;ctx.setLineDash([3,13]);ctx.beginPath();ctx.arc(trace.x,trace.y,trace.radius,.12,Math.PI*1.74);ctx.stroke();ctx.restore(); }
     function drawMonster(monster, now) { const alpha=alphaUntil(monster.revealUntil,now); if(alpha<=0)return; const jitter=monster.mode==="search"?Math.sin(now*.028+monster.phase)*1.6:0, points=[[-12,0],[-8,-5],[-4,4],[0,-7],[4,6],[9,-3],[13,1]];ctx.save();ctx.translate(monster.x+jitter,monster.y);ctx.globalAlpha=Math.pow(alpha,.72);ctx.strokeStyle="#d44349";ctx.lineWidth=1.45;ctx.shadowColor="rgba(161,42,48,.8)";ctx.shadowBlur=8;ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();ctx.fillStyle="#e95a5f";ctx.beginPath();ctx.arc(-2,-1,1.1,0,Math.PI*2);ctx.fill();ctx.restore(); }
@@ -627,9 +697,9 @@
     function render(now) { ctx.clearRect(0,0,width,height);if(finalEnding&&(state==="won"||state==="replay-complete")){drawEndingVisual(finalEnding,now);return;}if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now); }
     function frame(now) { const delta=Math.min(.035,(now-lastTime)/1000);lastTime=now;update(delta,now);render(now);requestAnimationFrame(frame); }
     function actionInput() { if(state==="prologue-title")beginPrologue();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); else if(state==="replay-complete")openReplay(); }
-    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
+    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="settings"){if(key==="escape")closeSettings();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(key==="escape"){openSettings();event.preventDefault();return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
     addEventListener("keyup",event=>{keys[event.key.toLowerCase()]=false;});
-    addEventListener("pointerdown",event=>{if(event.button!==0||state==="archive")return;if(state==="prologue-title"||state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
+    addEventListener("pointerdown",event=>{if(event.button!==0||state==="archive"||state==="settings"||state==="replay")return;if(state==="prologue-title"||state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
     archivePrevEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage>0){archivePage-=1;}else{for(let index=archiveEntryIndex-1;index>=0;index-=1){if(entryIntegrity(index)>0){archiveEntryIndex=index;archivePage=2;break;}}}updateArchivePage();});
     archiveNextEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage<2){archivePage+=1;}else{for(let index=archiveEntryIndex+1;index<ARCHIVE_ENTRIES.length;index+=1){if(entryIntegrity(index)>0){archiveEntryIndex=index;archivePage=0;break;}}}updateArchivePage();});
     archiveCloseEl.addEventListener("click",event=>{event.stopPropagation();closeArchive();});
@@ -638,8 +708,13 @@
     replayCloseEl.addEventListener("click",event=>{event.stopPropagation();closeReplay();});
     replayEl.addEventListener("pointerdown",event=>{if(event.target===replayEl)closeReplay();});
     replayListEl.addEventListener("click",event=>{const item = event.target.closest("[data-index]");if(item&&!item.disabled)startReplay(Number(item.dataset.index));});
+    settingsTriggerEl.addEventListener("click",openSettings);
+    settingsCloseEl.addEventListener("click",closeSettings);
+    settingsEl.addEventListener("pointerdown",event=>{if(event.target===settingsEl)closeSettings();});
+    volumeControlEl.addEventListener("input",()=>{audioPrefs.volume=Number(volumeControlEl.value)/100;persistAudioPrefs();updateSettingsUi();updateAudioMix();});
+    bassControlEl.addEventListener("input",()=>{audioPrefs.bass=Number(bassControlEl.value)/100;persistAudioPrefs();updateSettingsUi();updateAudioMix();});
     addEventListener("resize",resize);
-    resize();if(DEMO){loadChapter(0,true);beginChapter();if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100};state="won";showStatus("brief",`最终记录 ${PREVIEW_ENDING}`,PREVIEW_ENDING==="ER-00"?"漂流噪声":PREVIEW_ENDING==="ER-01"?"回声仍在":"岸上无声","预览 // 最终记录画面");}}else loadPrologue(true);requestAnimationFrame(frame);
+    updateSettingsUi(); resize();if(DEMO){loadChapter(0,true);beginChapter();if(PREVIEW_THREAT){alert=.88;monsters[0].x=player.x+width*.075;monsters[0].y=player.y-height*.04;huntUntil=performance.now()+99999;}if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100};state="won";showStatus("brief",`最终记录 ${PREVIEW_ENDING}`,PREVIEW_ENDING==="ER-00"?"漂流噪声":PREVIEW_ENDING==="ER-01"?"回声仍在":"岸上无声","预览 // 最终记录画面");}if(PREVIEW_SETTINGS)openSettings();}else loadPrologue(true);requestAnimationFrame(frame);
   })();
   </script>
 </body>
