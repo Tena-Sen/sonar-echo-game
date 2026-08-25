@@ -53,6 +53,24 @@
     #status h1 { position: relative; display: inline-block; margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5vw, 66px); font-weight: 400; letter-spacing: .07em; }
     #status h1::after { content: ""; position: absolute; top: 14%; right: -.18em; width: 1px; height: 55%; background: currentColor; opacity: .42; transform: rotate(27deg); }
     #status p { margin: 0; color: rgba(255,255,255,.48); font-size: 10px; letter-spacing: .14em; line-height: 2; }
+    #signal-glitch { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(246,246,242,.07) 4px, transparent 5px), linear-gradient(90deg, transparent, rgba(246,246,242,.08), transparent); mix-blend-mode: screen; }
+    #signal-glitch.active { animation: signal-break .78s steps(2,end) both; }
+    @keyframes signal-break { 0% { opacity: 0; transform: translateX(0); } 10% { opacity: .86; transform: translateX(-8px); } 22% { opacity: .18; transform: translateX(11px); } 38% { opacity: .65; transform: translateX(-3px); } 57% { opacity: .10; transform: translateX(6px); } 74% { opacity: .42; transform: translateX(-2px); } 100% { opacity: 0; transform: translateX(0); } }
+    #archive { position: fixed; inset: 0; z-index: 6; display: grid; place-items: center; padding: 22px; pointer-events: none; opacity: 0; transition: opacity .22s ease; background: rgba(0,0,0,.78); }
+    #archive.visible { opacity: 1; pointer-events: auto; }
+    .archive-panel { position: relative; width: min(92vw, 680px); min-height: min(72vh, 530px); padding: clamp(26px,5vw,54px); color: rgba(246,246,242,.82); background: rgba(3,3,3,.95); border: 1px solid rgba(246,246,242,.19); box-shadow: 0 0 0 1px rgba(211,170,88,.05), 0 0 60px rgba(0,0,0,.75); }
+    .archive-panel::before { content:""; position:absolute; top:15px; right:15px; width:56px; height:1px; background:rgba(211,170,88,.48); box-shadow:-8px 8px 0 rgba(211,170,88,.15); }
+    #archive-close { position:absolute; top:18px; right:22px; border:0; background:transparent; color:rgba(246,246,242,.45); font:inherit; font-size:10px; letter-spacing:.16em; cursor:pointer; transition:color .16s ease, transform .16s ease; }
+    #archive-close:hover { color:rgba(246,246,242,.9); transform:translateX(-2px); }
+    .archive-kicker { margin: 0 0 30px; color: rgba(211,170,88,.62); font-size: 9px; letter-spacing: .22em; }
+    .archive-panel h2 { margin:0 0 8px; font:400 clamp(28px,4.4vw,48px)/1.1 Georgia,"Times New Roman",serif; letter-spacing:.08em; }
+    .archive-meta { margin:0 0 38px; color:rgba(246,246,242,.34); font-size:8px; letter-spacing:.15em; }
+    #archive-body { min-height:172px; color:rgba(246,246,242,.67); font-size:12px; line-height:2.1; letter-spacing:.08em; }
+    #archive-body p { margin:0 0 18px; }
+    .archive-nav { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-top:36px; color:rgba(246,246,242,.36); font-size:9px; letter-spacing:.17em; }
+    .archive-nav button { border:0; padding:0; background:transparent; color:rgba(246,246,242,.64); font:inherit; letter-spacing:inherit; cursor:pointer; transition:color .16s ease; }
+    .archive-nav button:hover:not(:disabled) { color:rgba(211,170,88,.92); }
+    .archive-nav button:disabled { opacity:.22; cursor:default; }
     @media (max-width: 560px) {
       #brand { top: 11px; left: 14px; } #brand .wordmark { display: none; }
       #chapter { top: 70px; left: 14px; } #usage { top: 14px; right: 14px; }
@@ -73,6 +91,8 @@
   <div id="log-line" class="hud"></div>
   <div id="hint" class="hud">输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）</div>
   <div id="status"><div class="message"><p id="status-eyebrow" class="eyebrow"></p><h1 id="status-title"></h1><p id="status-copy"></p></div></div>
+  <div id="signal-glitch" aria-hidden="true"></div>
+  <section id="archive" aria-label="设备档案" aria-hidden="true"><div class="archive-panel"><button id="archive-close" type="button">关闭 // X</button><p class="archive-kicker">设备档案 // AR-01</p><h2>失落信号</h2><p class="archive-meta">监听站 17 · 回收介质 · 完整度 31%</p><div id="archive-body"></div><div class="archive-nav"><button id="archive-prev" type="button">← 上一页</button><span id="archive-page">01 / 03</span><button id="archive-next" type="button">下一页 →</button></div></div></section>
 
   <script>
   (() => {
@@ -99,8 +119,17 @@
     const statusEyebrow = document.getElementById("status-eyebrow");
     const statusTitle = document.getElementById("status-title");
     const statusCopy = document.getElementById("status-copy");
+    const glitchEl = document.getElementById("signal-glitch");
+    const archiveEl = document.getElementById("archive");
+    const archiveBodyEl = document.getElementById("archive-body");
+    const archivePageEl = document.getElementById("archive-page");
+    const archivePrevEl = document.getElementById("archive-prev");
+    const archiveNextEl = document.getElementById("archive-next");
+    const archiveCloseEl = document.getElementById("archive-close");
 
     const COLORS = { white: "#f6f6f2", red: "#a12a30", gold: "#d3aa58" };
+    const VOICE_RECORDS = ["不要回应第二次。它会记住你的频率。", "水面之下没有东西。那正是问题。", "如果听见自己的声音，从原路离开。"];
+    const ARCHIVE_PAGES = ["站点下沉时，自动浮标仍在向上发送同一段空白讯号。没有人承认写过它。", "值守员说静水区没有杂音。四分钟后，他申请调离，因为耳机里出现了第二个呼吸声。", "最后一条可校验记录：不要让它知道你正在听。"];
     const BORDER = [[.035,.055,.93,.010],[.035,.935,.93,.010],[.035,.055,.010,.89],[.955,.055,.010,.89]];
     const CHAPTERS = [
       {
@@ -135,6 +164,7 @@
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
     let chapterIndex = 0, state = "prologue-title", player, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue;
     let sonarCount = 0, runDeaths = 0, charge = 3, nextChargeAt = 0, alert = 0, lastEchoAt = 0, logUntil = 0, huntUntil = 0, lastHuntTargetAt = 0, lastDemoAt = 0;
+    let archiveUnlocked = localStorage.getItem("sonar-ar01") === "1", archivePage = 0, archiveReturnState = "", glitchTimer = 0;
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
@@ -157,6 +187,48 @@
     function recordSound() { tone(784,.12,.028,"sine",1047); tone(523,.20,.018,"triangle",784); }
     function baitSound() { tone(180,.22,.036,"triangle",75); }
     function failSound() { tone(50,.64,.09,"sawtooth",24); tone(95,.38,.035,"triangle",38); }
+    function noiseBurst(duration = .7, volume = .034) {
+      if (!audio) return;
+      const rate = audio.sampleRate, length = Math.floor(rate * duration), buffer = audio.createBuffer(1,length,rate), data = buffer.getChannelData(0);
+      for (let index = 0; index < length; index += 1) data[index] = (Math.random() * 2 - 1) * (1 - index / length);
+      const source = audio.createBufferSource(), filter = audio.createBiquadFilter(), gain = audio.createGain(), now = audio.currentTime;
+      filter.type = "bandpass"; filter.frequency.value = 1200; filter.Q.value = .7;
+      gain.gain.setValueAtTime(.0001,now); gain.gain.exponentialRampToValueAtTime(volume,now+.025); gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+      source.buffer = buffer; source.connect(filter).connect(gain).connect(audio.destination); source.start(now); source.stop(now + duration + .02);
+    }
+    function distortedVoice(text) {
+      ensureAudio(); noiseBurst(.86,.04); tone(92,.7,.022,"sawtooth",58);
+      if (!("speechSynthesis" in window)) return;
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "zh-CN"; utterance.rate = .70; utterance.pitch = .42; utterance.volume = .44;
+      setTimeout(() => speechSynthesis.speak(utterance), 170);
+    }
+    function triggerGlitch() {
+      clearTimeout(glitchTimer); glitchEl.classList.remove("active");
+      requestAnimationFrame(() => glitchEl.classList.add("active"));
+      glitchTimer = setTimeout(() => glitchEl.classList.remove("active"), 820);
+      if (audio) noiseBurst(.52,.05);
+    }
+    function updateArchivePage() {
+      archiveBodyEl.innerHTML = `<p>${ARCHIVE_PAGES[archivePage]}</p>`;
+      archivePageEl.textContent = `${String(archivePage + 1).padStart(2,"0")} / ${String(ARCHIVE_PAGES.length).padStart(2,"0")}`;
+      archivePrevEl.disabled = archivePage === 0;
+      archiveNextEl.disabled = archivePage === ARCHIVE_PAGES.length - 1;
+    }
+    function openArchive() {
+      if (!archiveUnlocked || state === "archive") return;
+      archiveReturnState = state; state = "archive"; archivePage = 0; updateArchivePage();
+      archiveEl.classList.add("visible"); archiveEl.setAttribute("aria-hidden","false");
+    }
+    function closeArchive() {
+      if (state !== "archive") return;
+      state = archiveReturnState; archiveEl.classList.remove("visible"); archiveEl.setAttribute("aria-hidden","true");
+    }
+    function unlockArchive() {
+      archiveUnlocked = true; localStorage.setItem("sonar-ar01","1");
+      showLog("档案 AR-01 已解锁 // F 查看。", 4300);
+    }
 
     function updateHud(now = performance.now()) {
       const chapter = currentChapter();
@@ -190,7 +262,7 @@
       player = { x:width * .50, y:height * .73, r:5.5, exposedUntil:0 };
       exit = { x:-100, y:-100, r:0, revealUntil:0, unlocked:false };
       monsters = []; records = []; shelters = []; pulses = []; traces = []; reveal = []; keys = Object.create(null); bait = null;
-      prologue = { anchor:{ x:width * .50, y:height * .32, r:10 }, phase:"title", wakeUntil:0, anomalyUntil:0, transitionAt:0 };
+      prologue = { anchor:{ x:width * .50, y:height * .32, r:10 }, phase:"title", wakeUntil:0, anomalyUntil:0, transitionAt:0, briefAt:0, voiceLine:VOICE_RECORDS[Math.floor(Math.random() * VOICE_RECORDS.length)] };
       charge = 3; nextChargeAt = 0; alert = 0; huntUntil = 0; lastEchoAt = 0; lastDemoAt = 0;
       if (resetRun) { sonarCount = 0; runDeaths = 0; }
       state = "prologue-title";
@@ -207,7 +279,8 @@
       prologue.wakeUntil = performance.now() + 1100;
       hideStatus();
       tone(64,.72,.035,"sine",92);
-      showLog("连接建立 // 生命迹象微弱。", 2600);
+      distortedVoice(prologue.voiceLine);
+      showLog("连接建立 // 内部通讯损坏。", 3200);
     }
     function beginCalibration() {
       state = "prologue-calibrate";
@@ -254,10 +327,17 @@
         pulses = pulses.filter(pulse => { if (pulse.radius >= pulse.max) { traces.push({ x:pulse.x, y:pulse.y, radius:pulse.max, type:"player", expires:now + 540 }); return false; } return true; });
         traces = traces.filter(trace => trace.expires > now);
         if (now >= prologue.transitionAt) {
-          state = "prologue-complete";
-          prologue.phase = "complete";
-          showStatus("brief", "校准完成 // 发现异常生命回声", "静水观测", "第一章已载入 · ENTER / 左键继续");
+          state = "prologue-transition";
+          prologue.phase = "transition";
+          prologue.briefAt = now + 740;
+          triggerGlitch();
         }
+      }
+      if (state === "prologue-transition" && now >= prologue.briefAt) {
+        state = "prologue-complete";
+        prologue.phase = "complete";
+        unlockArchive();
+        showStatus("brief", "校准完成 // 发现异常生命回声", "静水观测", "档案 AR-01 已解锁 · F 查看 · ENTER / 左键继续");
       }
     }
 
@@ -274,7 +354,7 @@
       if (resetRun) { sonarCount = 0; runDeaths = 0; }
       state = "brief";
       setGameplayHud(true);
-      hintEl.innerHTML = "输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）";
+      hintEl.innerHTML = `输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）${archiveUnlocked ? "<br>F // 设备档案" : ""}`;
       updateHud();
       showStatus("brief", `章节 ${chapter.id} // ${chapter.mood}`, chapter.title, `${chapter.subtitle}  ENTER / 左键开始`);
       showLog(`系统记录 // ${chapter.subtitle}`, 4200);
@@ -385,9 +465,13 @@
     function render(now) { ctx.clearRect(0,0,width,height);if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now); }
     function frame(now) { const delta=Math.min(.035,(now-lastTime)/1000);lastTime=now;update(delta,now);render(now);requestAnimationFrame(frame); }
     function actionInput() { if(state==="prologue-title")beginPrologue();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); }
-    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);}});
+    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="f")openArchive();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);}});
     addEventListener("keyup",event=>{keys[event.key.toLowerCase()]=false;});
-    addEventListener("pointerdown",event=>{if(event.button!==0)return;if(state==="prologue-title"||state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
+    addEventListener("pointerdown",event=>{if(event.button!==0||state==="archive")return;if(state==="prologue-title"||state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
+    archivePrevEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage>0){archivePage-=1;updateArchivePage();}});
+    archiveNextEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage<ARCHIVE_PAGES.length-1){archivePage+=1;updateArchivePage();}});
+    archiveCloseEl.addEventListener("click",event=>{event.stopPropagation();closeArchive();});
+    archiveEl.addEventListener("pointerdown",event=>{if(event.target===archiveEl)closeArchive();});
     addEventListener("resize",resize);
     resize();if(DEMO){loadChapter(0,true);beginChapter();}else loadPrologue(true);requestAnimationFrame(frame);
   })();
