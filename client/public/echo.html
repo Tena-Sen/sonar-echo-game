@@ -23,15 +23,15 @@
     #brand .sonar-mark line { stroke: rgba(161,42,48,.75); stroke-width: 1.15; }
     #brand .wordmark { display: grid; gap: 2px; }
     #brand .wordmark small { color: rgba(255,255,255,.26); font-size: 7px; letter-spacing: .19em; }
-    #chapter { top: 82px; left: 20px; display: grid; gap: 5px; color: rgba(255,255,255,.38); font-size: 8px; letter-spacing: .15em; }
+    #chapter { top: 82px; left: 20px; display: grid; gap: 5px; color: rgba(255,255,255,.38); font-size: 8px; letter-spacing: .15em; transition: opacity .4s ease; }
     #chapter strong { color: rgba(255,255,255,.72); font-size: 9px; font-weight: 400; letter-spacing: .19em; }
     #chapter-pips { display: flex; gap: 5px; align-items: center; }
     #chapter-pips i { display: block; width: 13px; height: 1px; background: rgba(255,255,255,.16); }
     #chapter-pips i.active { background: rgba(246,246,242,.8); box-shadow: 0 0 5px rgba(255,255,255,.42); }
     #chapter-pips i.done { background: rgba(211,170,88,.54); }
-    #usage { top: 20px; right: 24px; color: rgba(255,255,255,.49); text-align: right; font-size: 9px; line-height: 1.65; letter-spacing: .16em; }
+    #usage { top: 20px; right: 24px; color: rgba(255,255,255,.49); text-align: right; font-size: 9px; line-height: 1.65; letter-spacing: .16em; transition: opacity .4s ease; }
     #usage strong { display: block; color: rgba(255,255,255,.84); font-size: 14px; font-weight: 400; letter-spacing: .22em; }
-    #resources { top: 60px; right: 24px; display: grid; justify-items: end; gap: 6px; color: rgba(255,255,255,.31); font-size: 8px; letter-spacing: .14em; }
+    #resources { top: 60px; right: 24px; display: grid; justify-items: end; gap: 6px; color: rgba(255,255,255,.31); font-size: 8px; letter-spacing: .14em; transition: opacity .4s ease; }
     #charge-pips { display: flex; gap: 4px; }
     #charge-pips i { display: block; width: 14px; height: 2px; background: rgba(255,255,255,.12); transition: background .2s ease, box-shadow .2s ease; }
     #charge-pips i.ready { background: rgba(246,246,242,.78); box-shadow: 0 0 5px rgba(255,255,255,.35); }
@@ -39,7 +39,7 @@
     #alert.high { color: rgba(212,67,73,.88); }
     #timer { color: rgba(211,170,88,.35); }
     #timer.hot { color: rgba(211,170,88,.88); }
-    #objective { right: 24px; bottom: 18px; display: grid; justify-items: end; gap: 3px; color: rgba(211,170,88,.48); font-size: 8px; letter-spacing: .14em; }
+    #objective { right: 24px; bottom: 18px; display: grid; justify-items: end; gap: 3px; color: rgba(211,170,88,.48); font-size: 8px; letter-spacing: .14em; transition: opacity .4s ease; }
     #objective strong { color: rgba(227,191,114,.9); font-size: 10px; font-weight: 400; letter-spacing: .18em; }
     #exit-state { color: rgba(255,255,255,.24); font-size: 7px; letter-spacing: .13em; }
     #exit-state.unlocked { color: rgba(211,170,88,.72); }
@@ -50,7 +50,8 @@
     #status .message { width: min(78vw, 620px); transform: translateY(-3vh); text-align: center; color: #f2f2f0; text-shadow: 0 0 18px rgba(255,255,255,.19); }
     #status .message.danger { color: #d44349; text-shadow: 0 0 22px rgba(161,42,48,.42); }
     #status .eyebrow { margin: 0 0 12px; color: rgba(211,170,88,.62); font-size: 9px; letter-spacing: .23em; }
-    #status h1 { margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5vw, 66px); font-weight: 400; letter-spacing: .07em; }
+    #status h1 { position: relative; display: inline-block; margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5vw, 66px); font-weight: 400; letter-spacing: .07em; }
+    #status h1::after { content: ""; position: absolute; top: 14%; right: -.18em; width: 1px; height: 55%; background: currentColor; opacity: .42; transform: rotate(27deg); }
     #status p { margin: 0; color: rgba(255,255,255,.48); font-size: 10px; letter-spacing: .14em; line-height: 2; }
     @media (max-width: 560px) {
       #brand { top: 11px; left: 14px; } #brand .wordmark { display: none; }
@@ -79,6 +80,10 @@
 
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
+    const chapterEl = document.getElementById("chapter");
+    const usageEl = document.getElementById("usage");
+    const resourcesEl = document.getElementById("resources");
+    const objectiveEl = document.getElementById("objective");
     const chapterLabelEl = document.getElementById("chapter-label");
     const chapterNameEl = document.getElementById("chapter-name");
     const chapterPipsEl = document.getElementById("chapter-pips");
@@ -128,7 +133,7 @@
     const DEMO = new URLSearchParams(location.search).has("demo");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
-    let chapterIndex = 0, state = "brief", player, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio;
+    let chapterIndex = 0, state = "prologue-title", player, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue;
     let sonarCount = 0, runDeaths = 0, charge = 3, nextChargeAt = 0, alert = 0, lastEchoAt = 0, logUntil = 0, huntUntil = 0, lastHuntTargetAt = 0, lastDemoAt = 0;
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
@@ -178,6 +183,83 @@
       statusEl.classList.add("visible");
     }
     function hideStatus() { statusEl.classList.remove("visible"); }
+    function setGameplayHud(visible) { [chapterEl,usageEl,resourcesEl,objectiveEl].forEach(element => element.style.opacity = visible ? "1" : "0"); }
+
+    function loadPrologue(resetRun = true) {
+      chapterIndex = 0;
+      player = { x:width * .50, y:height * .73, r:5.5, exposedUntil:0 };
+      exit = { x:-100, y:-100, r:0, revealUntil:0, unlocked:false };
+      monsters = []; records = []; shelters = []; pulses = []; traces = []; reveal = []; keys = Object.create(null); bait = null;
+      prologue = { anchor:{ x:width * .50, y:height * .32, r:10 }, phase:"title", wakeUntil:0, anomalyUntil:0, transitionAt:0 };
+      charge = 3; nextChargeAt = 0; alert = 0; huntUntil = 0; lastEchoAt = 0; lastDemoAt = 0;
+      if (resetRun) { sonarCount = 0; runDeaths = 0; }
+      state = "prologue-title";
+      setGameplayHud(false);
+      hintEl.style.opacity = "0";
+      showLog("失落信号 // 等待接通。", 4200);
+      showStatus("brief", "失落信号 // 00", "回声", "拾取失落信号 · ENTER / 左键");
+    }
+    function beginPrologue() {
+      if (state !== "prologue-title") return;
+      ensureAudio();
+      state = "prologue-wake";
+      prologue.phase = "wake";
+      prologue.wakeUntil = performance.now() + 1100;
+      hideStatus();
+      tone(64,.72,.035,"sine",92);
+      showLog("连接建立 // 生命迹象微弱。", 2600);
+    }
+    function beginCalibration() {
+      state = "prologue-calibrate";
+      prologue.phase = "calibrate";
+      hintEl.innerHTML = "校准 // WASD 位移至回声锚点";
+      hintEl.style.opacity = "1";
+      showLog("空间为空。先移动，不要发声。", 3400);
+    }
+    function movePrologue(delta) {
+      const dx = (keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0), dy = (keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+      if (!dx && !dy) return;
+      const length = Math.hypot(dx,dy), speed = Math.min(width,height) * .245;
+      player.x = clamp(player.x + dx / length * speed * delta, width*.08, width*.92);
+      player.y = clamp(player.y + dy / length * speed * delta, height*.10, height*.91);
+    }
+    function emitProloguePulse() {
+      if (state !== "prologue-echo") return;
+      const now = performance.now();
+      sonarCount += 1;
+      player.exposedUntil = now + 460;
+      pulses.push(makePulse(player.x,player.y));
+      sonarSound();
+      tone(445,.14,.018,"sine",280);
+      state = "prologue-reveal";
+      prologue.phase = "reveal";
+      prologue.anomalyUntil = now + 2200;
+      prologue.transitionAt = now + 2650;
+      hintEl.style.opacity = "0";
+      showLog("未知回声 // 它听见了。", 2600);
+    }
+    function updatePrologue(delta, now) {
+      if (state === "prologue-wake" && now >= prologue.wakeUntil) beginCalibration();
+      if (state === "prologue-calibrate") {
+        movePrologue(delta);
+        if (dist(player.x,player.y,prologue.anchor.x,prologue.anchor.y) < 19) {
+          state = "prologue-echo";
+          prologue.phase = "echo";
+          hintEl.innerHTML = "校准锚点稳定 // 左键发射首次回声";
+          showLog("锚点稳定。现在，让黑暗回应。", 3200);
+        }
+      }
+      if (state === "prologue-reveal") {
+        pulses.forEach(pulse => { pulse.previousRadius = pulse.radius; pulse.radius += pulse.speed * delta; });
+        pulses = pulses.filter(pulse => { if (pulse.radius >= pulse.max) { traces.push({ x:pulse.x, y:pulse.y, radius:pulse.max, type:"player", expires:now + 540 }); return false; } return true; });
+        traces = traces.filter(trace => trace.expires > now);
+        if (now >= prologue.transitionAt) {
+          state = "prologue-complete";
+          prologue.phase = "complete";
+          showStatus("brief", "校准完成 // 发现异常生命回声", "静水观测", "第一章已载入 · ENTER / 左键继续");
+        }
+      }
+    }
 
     function loadChapter(index, resetRun = false) {
       chapterIndex = clamp(index, 0, CHAPTERS.length - 1);
@@ -191,13 +273,15 @@
       charge = 3; nextChargeAt = 0; alert = 0; huntUntil = 0; lastHuntTargetAt = 0; lastEchoAt = 0; lastDemoAt = performance.now() - 1600;
       if (resetRun) { sonarCount = 0; runDeaths = 0; }
       state = "brief";
+      setGameplayHud(true);
+      hintEl.innerHTML = "输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）";
       updateHud();
       showStatus("brief", `章节 ${chapter.id} // ${chapter.mood}`, chapter.title, `${chapter.subtitle}  ENTER / 左键开始`);
       showLog(`系统记录 // ${chapter.subtitle}`, 4200);
     }
     function beginChapter() { if (state !== "brief") return; ensureAudio(); state = "playing"; hideStatus(); hintEl.style.opacity = "1"; showLog("目标载入 // 读取全部章节记录。", 2400); }
     function nextChapter() { if (state !== "interchapter") return; if (chapterIndex < CHAPTERS.length - 1) loadChapter(chapterIndex + 1); }
-    function startNewRun() { loadChapter(0, true); }
+    function startNewRun() { loadPrologue(true); }
 
     function resize() {
       const oldWidth = width || innerWidth, oldHeight = height || innerHeight;
@@ -208,6 +292,7 @@
         [player,exit,...monsters,...records,...shelters].forEach(entity => { entity.x *= sx; entity.y *= sy; if (entity.route) entity.route.forEach(point => { point.x *= sx; point.y *= sy; }); if (entity.r && entity !== player && entity !== exit) entity.r *= Math.min(sx,sy); });
         pulses.forEach(pulse => { pulse.x *= sx; pulse.y *= sy; pulse.radius *= Math.min(sx,sy); });
         if (bait) { bait.x *= sx; bait.y *= sy; }
+        if (prologue) { prologue.anchor.x = width * .50; prologue.anchor.y = height * .32; }
       }
     }
     function collides(x, y, radius) {
@@ -244,7 +329,7 @@
     }
     function endGame(result) {
       if (state !== "playing") return;
-      if (result === "lost") { state = "lost"; runDeaths += 1; failSound(); showStatus("danger", `章节 ${currentChapter().id} // 信号中断`, "你被吞噬了", "R 重试本章。下一次回声也许会来自别处。" ); return; }
+      if (result === "lost") { state = "lost"; runDeaths += 1; failSound(); showStatus("danger", `章节 ${currentChapter().id} // 信号中断`, "你被吞噬了", "R // 重载本章记录。" ); return; }
       if (chapterIndex === CHAPTERS.length - 1) { state = "won"; const score = sonarCount + runDeaths * 5; const rating = score <= 26 ? "静默穿越" : score <= 42 ? "受控残响" : "失真回声"; showStatus("brief","记录恢复完毕","回声仍在", `4 个章节 · 声呐 ${String(sonarCount).padStart(2,"0")} 次 · ${rating} · R 重新进入`); return; }
       state = "interchapter"; showStatus("brief", `章节 ${currentChapter().id} // 记录恢复`, "门已开启", `下一章节：${CHAPTERS[chapterIndex + 1].title} · ENTER / 左键继续`);
     }
@@ -256,10 +341,11 @@
       if (target) { const dx = target.x-monster.x, dy=target.y-monster.y, length=Math.hypot(dx,dy); if (length < 7) { monster.target=null; monster.mode="search"; monster.searchUntil=now+1500; } else { const speed = Math.min(width,height) * monster.speed * (1 + alert * .64) * (huntUntil > now ? 1.30 : 1); move(monster,dx/length*speed*delta,dy/length*speed*delta); } }
       else if (monster.mode === "search") { if (now > monster.searchUntil) monster.mode = "patrol"; }
       else { const waypoint = monster.route[monster.routeIndex], dx=waypoint.x-monster.x, dy=waypoint.y-monster.y, length=Math.hypot(dx,dy); if (length < 6) monster.routeIndex = (monster.routeIndex + 1) % monster.route.length; else { const speed = Math.min(width,height) * monster.speed; move(monster,dx/length*speed*delta,dy/length*speed*delta); } }
-      if (!sheltered && dist(player.x,player.y,monster.x,monster.y) < player.r + monster.r + 2) endGame("lost");
+      if (!DEMO && !sheltered && dist(player.x,player.y,monster.x,monster.y) < player.r + monster.r + 2) endGame("lost");
     }
     function updateBait(now) { if (!bait) return; if (now >= bait.armedAt) bait.ready = true; if (bait.ready && bait.pulsesLeft > 0 && now >= bait.nextPulseAt) { const pulse = makePulse(bait.x,bait.y,"bait"); pulse.max = Math.min(width,height) * .38; pulses.push(pulse); bait.pulsesLeft -= 1; bait.nextPulseAt = now + 950; baitSound(); } if (now >= bait.expiresAt) { bait = null; showLog("诱饵静默。",1500); } }
     function update(delta, now) {
+      if (state.startsWith("prologue")) { updatePrologue(delta,now); return; }
       if (state !== "playing") return;
       alert = Math.max(0,alert - delta*.043);
       if (charge < 3 && now >= nextChargeAt) { charge += 1; nextChargeAt = charge < 3 ? now + currentChapter().cooldown : 0; if (audio) tone(350,.055,.012,"sine",470); }
@@ -272,7 +358,7 @@
       updateHud(now);
     }
     function alphaUntil(until, now) { return clamp((until-now)/currentChapter().fade,0,1); }
-    function drawWall(rect, alpha) { if (alpha<=0) return;ctx.save();ctx.strokeStyle=COLORS.white;ctx.lineWidth=1.02;ctx.shadowColor="rgba(255,255,255,.62)";ctx.shadowBlur=4;const horizontal=rect.w>=rect.h,length=horizontal?rect.w:rect.h,minor=horizontal?rect.h*.5:rect.w*.5,ox=rect.x+(horizontal?0:rect.w*.5),oy=rect.y+(horizontal?rect.h*.5:0),cuts=[[.10,.11],[.47,.16],[.84,.045]];cuts.forEach(([o,s],index)=>{ctx.globalAlpha=Math.pow(alpha,1.92)*(.72-index*.18);const a=length*o,b=Math.min(length*(o+s),length);ctx.beginPath();if(horizontal){ctx.moveTo(ox+a,oy+minor*Math.sin(o*21));ctx.lineTo(ox+b,oy-minor*Math.sin(o*19));}else{ctx.moveTo(ox+minor*Math.sin(o*19),oy+a);ctx.lineTo(ox-minor*Math.sin(o*21),oy+b);}ctx.stroke();});ctx.restore(); }
+    function drawWall(rect, alpha) { if (alpha<=0) return;ctx.save();ctx.strokeStyle=COLORS.white;ctx.lineWidth=1.0;ctx.shadowColor="rgba(255,255,255,.52)";ctx.shadowBlur=3;const horizontal=rect.w>=rect.h,length=horizontal?rect.w:rect.h,minor=horizontal?rect.h*.5:rect.w*.5,ox=rect.x+(horizontal?0:rect.w*.5),oy=rect.y+(horizontal?rect.h*.5:0),cuts=[[.11,.075],[.49,.095],[.85,.032]];cuts.forEach(([o,s],index)=>{ctx.globalAlpha=Math.pow(alpha,2.08)*(.62-index*.17);const a=length*o,b=Math.min(length*(o+s),length);ctx.beginPath();if(horizontal){ctx.moveTo(ox+a,oy+minor*Math.sin(o*21));ctx.lineTo(ox+b,oy-minor*Math.sin(o*19));}else{ctx.moveTo(ox+minor*Math.sin(o*19),oy+a);ctx.lineTo(ox-minor*Math.sin(o*21),oy+b);}ctx.stroke();});ctx.restore(); }
     function drawPulse(pulse) { const progress=pulse.radius/pulse.max;ctx.save();ctx.globalAlpha=(1-progress)*(pulse.type==="bait"?.45:.94);ctx.strokeStyle=COLORS.white;ctx.lineWidth=pulse.type==="bait"?.8:1.34;ctx.setLineDash(pulse.type==="bait"?[2,8]:[]);ctx.shadowColor="rgba(255,255,255,.64)";ctx.shadowBlur=pulse.type==="bait"?3:8;ctx.beginPath();ctx.arc(pulse.x,pulse.y,pulse.radius,0,Math.PI*2);ctx.stroke();ctx.restore(); }
     function drawTrace(trace, now) { const alpha=clamp((trace.expires-now)/420,0,1);ctx.save();ctx.globalAlpha=alpha*(trace.type==="bait"?.16:.33);ctx.strokeStyle=COLORS.white;ctx.lineWidth=.8;ctx.setLineDash([3,13]);ctx.beginPath();ctx.arc(trace.x,trace.y,trace.radius,.12,Math.PI*1.74);ctx.stroke();ctx.restore(); }
     function drawMonster(monster, now) { const alpha=alphaUntil(monster.revealUntil,now); if(alpha<=0)return; const jitter=monster.mode==="search"?Math.sin(now*.028+monster.phase)*1.6:0, points=[[-12,0],[-8,-5],[-4,4],[0,-7],[4,6],[9,-3],[13,1]];ctx.save();ctx.translate(monster.x+jitter,monster.y);ctx.globalAlpha=Math.pow(alpha,.72);ctx.strokeStyle="#d44349";ctx.lineWidth=1.45;ctx.shadowColor="rgba(161,42,48,.8)";ctx.shadowBlur=8;ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();ctx.fillStyle="#e95a5f";ctx.beginPath();ctx.arc(-2,-1,1.1,0,Math.PI*2);ctx.fill();ctx.restore(); }
@@ -281,14 +367,29 @@
     function drawExit(now) { const alpha=exit.unlocked?Math.max(alphaUntil(exit.revealUntil,now),.22):alphaUntil(exit.revealUntil,now);if(alpha<=0)return;ctx.save();ctx.globalAlpha=Math.pow(alpha,.68);const glow=ctx.createRadialGradient(exit.x,exit.y,0,exit.x,exit.y,18);glow.addColorStop(0,"rgba(211,170,88,.66)");glow.addColorStop(1,"rgba(211,170,88,0)");ctx.fillStyle=glow;ctx.beginPath();ctx.arc(exit.x,exit.y,18,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#e3bf72";ctx.lineWidth=1.05;ctx.shadowColor="rgba(211,170,88,.72)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(exit.x,exit.y,exit.unlocked?4:3,0,Math.PI*2);ctx.stroke();if(!exit.unlocked){ctx.beginPath();ctx.moveTo(exit.x-3,exit.y+3);ctx.lineTo(exit.x+3,exit.y-3);ctx.stroke();}ctx.restore(); }
     function drawBait(now) { if(!bait)return;ctx.save();ctx.globalAlpha=bait.ready?.64:.22;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.85;ctx.setLineDash([2,5]);ctx.beginPath();ctx.arc(bait.x,bait.y,bait.ready?8:4,0,Math.PI*2);ctx.stroke();ctx.restore(); }
     function drawPlayer(now) { const exposure=clamp((player.exposedUntil-now)/460,0,1), sheltered=isSheltered();ctx.save();if(exposure>0){const halo=ctx.createRadialGradient(player.x,player.y,0,player.x,player.y,20);halo.addColorStop(0,`rgba(161,42,48,${exposure*.24})`);halo.addColorStop(1,"rgba(161,42,48,0)");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(player.x,player.y,20,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=.26+exposure*.34;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.75;ctx.beginPath();ctx.arc(player.x,player.y,7.5,.28,Math.PI*1.63);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.34)":"rgba(255,255,255,.95)";ctx.shadowBlur=sheltered?4:9;ctx.beginPath();ctx.arc(player.x,player.y,player.r*.62,0,Math.PI*2);ctx.fill();ctx.restore(); }
-    function render(now) { ctx.clearRect(0,0,width,height);traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now); }
+    function drawPrologue(now) {
+      const active = state !== "prologue-title";
+      if (!active) {
+        const x = width*.50, y = height*.57, radius = Math.min(width,height)*.16;
+        ctx.save();ctx.globalAlpha=.36;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.85;ctx.setLineDash([2,12]);ctx.shadowColor="rgba(255,255,255,.28)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(x,y,radius,.18,Math.PI*1.66);ctx.stroke();ctx.globalAlpha=.55;ctx.setLineDash([]);ctx.beginPath();ctx.arc(x,y,radius*.56,-.15,Math.PI*.43);ctx.stroke();ctx.fillStyle=COLORS.white;ctx.shadowColor="rgba(255,255,255,.82)";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(x,y,2.1,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.3;ctx.beginPath();ctx.moveTo(x-radius*.82,y-radius*.18);ctx.lineTo(x-radius*.42,y-radius*.18);ctx.moveTo(x+radius*.40,y+radius*.39);ctx.lineTo(x+radius*.72,y+radius*.39);ctx.stroke();ctx.restore();
+      }
+      if (active) {
+        const alpha = state === "prologue-wake" ? clamp(1 - (prologue.wakeUntil - now) / 1100,0,1) : .72;
+        ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.8;ctx.setLineDash([2,9]);ctx.beginPath();ctx.arc(prologue.anchor.x,prologue.anchor.y,prologue.anchor.r + 4,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(prologue.anchor.x-34,prologue.anchor.y);ctx.lineTo(prologue.anchor.x-12,prologue.anchor.y);ctx.moveTo(prologue.anchor.x+12,prologue.anchor.y);ctx.lineTo(prologue.anchor.x+34,prologue.anchor.y);ctx.stroke();ctx.restore();
+      }
+      traces.forEach(trace=>drawTrace(trace,now));
+      pulses.forEach(drawPulse);
+      if (state === "prologue-reveal" && now < prologue.anomalyUntil) { const a = clamp((prologue.anomalyUntil-now)/2200,0,1);ctx.save();ctx.translate(width*.76,height*.23);ctx.globalAlpha=a*.7;ctx.strokeStyle="#d44349";ctx.lineWidth=1.45;ctx.shadowColor="rgba(161,42,48,.82)";ctx.shadowBlur=9;ctx.beginPath();ctx.moveTo(-11,0);ctx.lineTo(-7,-5);ctx.lineTo(-3,4);ctx.lineTo(1,-7);ctx.lineTo(5,6);ctx.lineTo(10,-2);ctx.stroke();ctx.restore(); }
+      if (active) drawPlayer(now);
+    }
+    function render(now) { ctx.clearRect(0,0,width,height);if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now); }
     function frame(now) { const delta=Math.min(.035,(now-lastTime)/1000);lastTime=now;update(delta,now);render(now);requestAnimationFrame(frame); }
-    function actionInput() { if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); }
+    function actionInput() { if(state==="prologue-title")beginPrologue();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); }
     addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);}});
     addEventListener("keyup",event=>{keys[event.key.toLowerCase()]=false;});
-    addEventListener("pointerdown",event=>{if(event.button!==0)return;if(state==="brief"||state==="interchapter")actionInput();else if(state==="playing")emitPulse();});
+    addEventListener("pointerdown",event=>{if(event.button!==0)return;if(state==="prologue-title"||state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
     addEventListener("resize",resize);
-    resize();loadChapter(0,true);if(DEMO) beginChapter();requestAnimationFrame(frame);
+    resize();if(DEMO){loadChapter(0,true);beginChapter();}else loadPrologue(true);requestAnimationFrame(frame);
   })();
   </script>
 </body>
