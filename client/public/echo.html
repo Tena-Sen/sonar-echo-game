@@ -67,6 +67,8 @@
     .archive-kicker { margin: 0 0 30px; color: rgba(246,246,242,.42); font-size: 9px; letter-spacing: .22em; }
     .archive-panel h2 { margin:0 0 8px; font:400 clamp(28px,4.4vw,48px)/1.1 Georgia,"Times New Roman",serif; letter-spacing:.08em; }
     .archive-meta { margin:0 0 38px; color:rgba(246,246,242,.34); font-size:8px; letter-spacing:.15em; }
+    #archive-evidence { margin:-26px 0 38px; color:rgba(246,246,242,.25); font-size:8px; letter-spacing:.15em; }
+    #archive-evidence.confirmed { color:rgba(211,170,88,.62); }
     #archive-body { min-height:172px; color:rgba(246,246,242,.67); font-size:12px; line-height:2.1; letter-spacing:.08em; }
     #archive-body p { margin:0 0 18px; }
     #archive-body .missing { color:rgba(246,246,242,.23); font-size:10px; letter-spacing:.15em; }
@@ -92,7 +94,8 @@
     .replay-item:disabled { opacity:.25; cursor:default; }
     .replay-item .id { color:rgba(211,170,88,.56); font-size:8px; letter-spacing:.18em; }
     .replay-item .name { font-size:11px; letter-spacing:.13em; }
-    .replay-item .score { color:rgba(246,246,242,.39); font-size:8px; letter-spacing:.13em; }
+    .replay-item .score { color:rgba(246,246,242,.39); font-size:8px; letter-spacing:.13em; text-align:right; line-height:1.9; }
+    .replay-item .badge { color:rgba(211,170,88,.68); }
     #replay-note { margin:20px 0 0; color:rgba(246,246,242,.28); font-size:8px; letter-spacing:.14em; line-height:1.8; }
     @media (max-width: 560px) {
       #brand { top: 11px; left: 14px; } #brand .wordmark { display: none; }
@@ -115,7 +118,7 @@
   <div id="hint" class="hud">输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）</div>
   <div id="status"><div class="message"><p id="status-eyebrow" class="eyebrow"></p><h1 id="status-title"></h1><p id="status-copy"></p></div></div>
   <div id="signal-glitch" aria-hidden="true"></div>
-  <section id="archive" aria-label="设备档案" aria-hidden="true"><div class="archive-panel"><button id="archive-replay" type="button">章节回放 // C</button><button id="archive-close" type="button">关闭 // X</button><p id="archive-kicker" class="archive-kicker">设备档案 // AR-01</p><h2 id="archive-title">失落信号</h2><p id="archive-meta" class="archive-meta">监听站 17 · 回收介质</p><div id="archive-body"></div><div class="archive-nav"><button id="archive-prev" type="button">← 上一页</button><span id="archive-page">AR-01 · 01 / 03</span><button id="archive-next" type="button">下一页 →</button></div></div></section>
+  <section id="archive" aria-label="设备档案" aria-hidden="true"><div class="archive-panel"><button id="archive-replay" type="button">章节回放 // C</button><button id="archive-close" type="button">关闭 // X</button><p id="archive-kicker" class="archive-kicker">设备档案 // AR-01</p><h2 id="archive-title">失落信号</h2><p id="archive-meta" class="archive-meta">监听站 17 · 回收介质</p><p id="archive-evidence"></p><div id="archive-body"></div><div class="archive-nav"><button id="archive-prev" type="button">← 上一页</button><span id="archive-page">AR-01 · 01 / 03</span><button id="archive-next" type="button">下一页 →</button></div></div></section>
   <section id="replay" aria-label="章节回放" aria-hidden="true"><div class="replay-panel"><button id="replay-close" type="button">关闭 // X</button><p class="replay-kicker">章节回放 // 已恢复记录</p><h2>回收记录</h2><p class="replay-meta">每次通过仅覆盖更高完整度。选择记录后重载对应章节。</p><div id="replay-list"></div><p id="replay-note">未恢复的章节尚不可读取。</p></div></section>
 
   <script>
@@ -150,6 +153,7 @@
     const archiveKickerEl = document.getElementById("archive-kicker");
     const archiveTitleEl = document.getElementById("archive-title");
     const archiveMetaEl = document.getElementById("archive-meta");
+    const archiveEvidenceEl = document.getElementById("archive-evidence");
     const archivePageEl = document.getElementById("archive-page");
     const archivePrevEl = document.getElementById("archive-prev");
     const archiveNextEl = document.getElementById("archive-next");
@@ -160,6 +164,7 @@
     const replayCloseEl = document.getElementById("replay-close");
 
     const COLORS = { white: "#f6f6f2", red: "#a12a30", gold: "#d3aa58" };
+    const LOW_PULSE_LIMITS = [8,9,10,11];
     const SIGNAL_RECORDS = ["不要回应第二次。它会记住你的频率。", "水面之下没有东西。那正是问题。", "如果听见自己的声音，从原路离开。"];
     const ARCHIVE_ENTRIES = [
       { id:"AR-01", title:"失落信号", source:"监听站 17 · 回收介质", pages:["站点下沉时，自动浮标仍在向上发送同一段空白讯号。没有人承认写过它。","值守员说静水区没有杂音。四分钟后，他申请调离，因为耳机里出现了第二个呼吸声。","最后一条可校验记录：不要让它知道你正在听。"] },
@@ -201,14 +206,17 @@
     const DEMO = QUERY.has("demo");
     const PREVIEW_ARCHIVE = QUERY.has("archive");
     const PREVIEW_REPLAY = QUERY.has("replay");
+    const PREVIEW_ENDING = QUERY.get("ending");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
     let chapterIndex = 0, state = "prologue-title", player, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue, ambientCue;
     let sonarCount = 0, runDeaths = 0, charge = 3, nextChargeAt = 0, alert = 0, lastEchoAt = 0, logUntil = 0, huntUntil = 0, lastHuntTargetAt = 0, lastDemoAt = 0;
     let activeChapter = -1, chapterFailures = 0, chapterStartSonar = 0, chapterIntegrity = 100;
     let archiveStore = (() => { try { const legacy = localStorage.getItem("sonar-ar01") === "1"; const stored = JSON.parse(localStorage.getItem("sonar-archives") || "{}"); if (legacy && !stored["AR-01"]) stored["AR-01"] = 100; return stored; } catch { return {}; } })();
-    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0;
+    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null;
     let bestStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-best-integrity") || "{}"); } catch { return {}; } })();
+    let badgeStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-chapter-badges") || "{}"); } catch { return {}; } })();
+    let cueStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-cue-evidence") || "{}"); } catch { return {}; } })();
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
@@ -260,10 +268,16 @@
     }
     function persistArchives() { try { localStorage.setItem("sonar-archives",JSON.stringify(archiveStore)); } catch {} }
     function persistBest() { try { localStorage.setItem("sonar-best-integrity",JSON.stringify(bestStore)); } catch {} }
+    function persistBadges() { try { localStorage.setItem("sonar-chapter-badges",JSON.stringify(badgeStore)); } catch {} }
+    function persistCues() { try { localStorage.setItem("sonar-cue-evidence",JSON.stringify(cueStore)); } catch {} }
     function entryIntegrity(index) { return archiveStore[ARCHIVE_ENTRIES[index].id] || 0; }
     function bestIntegrity(index) { return bestStore[index] || 0; }
+    function badgesFor(index) { return badgeStore[index] || {}; }
+    function cueConfirmed(index) { return Boolean(cueStore[index]); }
     function unlockedChapterCount() { const values = CHAPTERS.map((_,index) => bestIntegrity(index)); return Math.max(1,values.filter(value => value > 0).length); }
     function registerBest(index, integrity) { const previous = bestIntegrity(index), improved = integrity > previous; if (improved) { bestStore[index] = integrity; persistBest(); } return { previous, improved, best:Math.max(previous,integrity) }; }
+    function registerBadges(index) { const chapterPulses = Math.max(0,sonarCount - chapterStartSonar), existing = badgesFor(index), next = { ...existing }; if (chapterFailures === 0) next.noDamage = true; if (chapterPulses <= LOW_PULSE_LIMITS[index]) next.lowPulse = true; badgeStore[index] = next; persistBadges(); return next; }
+    function markCueConfirmed(index) { cueStore[index] = true; persistCues(); }
     function endingRecord() {
       const values = CHAPTERS.map((_,index) => bestIntegrity(index));
       const average = values.reduce((sum,value) => sum + value,0) / CHAPTERS.length;
@@ -277,6 +291,9 @@
       archiveKickerEl.textContent = `设备档案 // ${entry.id}`;
       archiveTitleEl.textContent = entry.title;
       archiveMetaEl.textContent = `${entry.source} · 信号完整度 ${String(Math.round(integrity)).padStart(2,"0")}%`;
+      const cueIndex = archiveEntryIndex - 1;
+      if (cueIndex >= 0) { const confirmed = cueConfirmed(cueIndex); archiveEvidenceEl.textContent = `线索状态 // ${confirmed ? "已证实" : "仍存疑"}`; archiveEvidenceEl.classList.toggle("confirmed",confirmed); }
+      else { archiveEvidenceEl.textContent = "校准记录 // 已归档"; archiveEvidenceEl.classList.remove("confirmed"); }
       archiveBodyEl.innerHTML = archivePage < recovered ? `<p>${entry.pages[archivePage]}</p>` : `<p class="missing">[ 数据缺失 // 信号完整度不足 ]</p>`;
       archivePageEl.textContent = `${entry.id} · ${String(archivePage + 1).padStart(2,"0")} / 03`;
       archivePrevEl.disabled = archiveEntryIndex === 0 && archivePage === 0;
@@ -296,7 +313,8 @@
       const unlocked = unlockedChapterCount();
       replayListEl.innerHTML = CHAPTERS.map((chapter,index) => {
         const available = index < unlocked, best = bestIntegrity(index);
-        return `<button class="replay-item" type="button" data-index="${index}" ${available ? "" : "disabled"}><span class="id">记录 ${String(index + 1).padStart(2,"0")}</span><span class="name">${chapter.title}</span><span class="score">${available ? `最佳 ${String(Math.round(best)).padStart(2,"0")}%` : "未恢复"}</span></button>`;
+        const badges = badgesFor(index), marks = [badges.noDamage ? "无伤" : "", badges.lowPulse ? "低声呐" : ""].filter(Boolean).join(" · ");
+        return `<button class="replay-item" type="button" data-index="${index}" ${available ? "" : "disabled"}><span class="id">记录 ${String(index + 1).padStart(2,"0")}</span><span class="name">${chapter.title}</span><span class="score">${available ? `最佳 ${String(Math.round(best)).padStart(2,"0")}%${marks ? `<br><span class="badge">${marks}</span>` : ""}` : "未恢复"}</span></button>`;
       }).join("");
     }
     function openReplay() {
@@ -327,8 +345,9 @@
     function finalizeChapterRecord() {
       chapterIntegrity = calculateIntegrity();
       const best = registerBest(chapterIndex,chapterIntegrity);
+      const badges = registerBadges(chapterIndex);
       unlockArchive(chapterIndex + 1,chapterIntegrity);
-      return { integrity:chapterIntegrity, best };
+      return { integrity:chapterIntegrity, best, badges };
     }
 
     function updateHud(now = performance.now()) {
@@ -369,6 +388,7 @@
       if (resetRun) { sonarCount = 0; runDeaths = 0; }
       state = "prologue-title";
       replayMode = false;
+      finalEnding = null;
       activeChapter = -1; chapterFailures = 0; chapterStartSonar = 0; chapterIntegrity = 100;
       setGameplayHud(false);
       hintEl.style.opacity = "0";
@@ -448,6 +468,7 @@
     function loadChapter(index, resetRun = false) {
       chapterIndex = clamp(index, 0, CHAPTERS.length - 1);
       const chapter = currentChapter();
+      finalEnding = null;
       player = { ...pointAt(chapter.player), r:5.5, exposedUntil:0 };
       exit = { ...pointAt(chapter.exit), r:7, revealUntil:0, unlocked:false };
       ambientCue = { ...pointAt(chapter.cue.p), type:chapter.cue.type, line:chapter.cue.line, r:Math.min(width,height)*.072, triggered:false };
@@ -518,8 +539,8 @@
       if (state !== "playing") return;
       if (result === "lost") { state = "lost"; runDeaths += 1; chapterFailures += 1; chapterIntegrity = calculateIntegrity(); failSound(); showStatus("danger", `章节 ${currentChapter().id} // 信号中断`, "你被吞噬了", `R // 重载本章记录。当前完整度 ${String(Math.round(chapterIntegrity)).padStart(2,"0")}%` ); return; }
       const resultRecord = finalizeChapterRecord(), integrity = resultRecord.integrity;
-      if (replayMode) { state = "replay-complete"; const message = resultRecord.best.improved ? "记录已修复 // 历史完整度上升。" : "记录未改善 // 原始数据保留。"; const ending = chapterIndex === CHAPTERS.length - 1 ? endingRecord() : null; showStatus("brief", ending ? `最终记录 ${ending.id} // ${String(Math.round(ending.average)).padStart(2,"0")}%` : `回放 ${String(replayIndex + 1).padStart(2,"0")} // ${String(Math.round(integrity)).padStart(2,"0")}%`, ending ? ending.title : resultRecord.best.improved ? "记录已修复" : "记录已保留", `${ending ? ending.copy : message} C 返回回放 · R 新一轮`); return; }
-      if (chapterIndex === CHAPTERS.length - 1) { state = "won"; const ending = endingRecord(); showStatus("brief", `最终记录 ${ending.id} // 信号 ${String(Math.round(ending.average)).padStart(2,"0")}%`, ending.title, `${ending.copy} F 查看档案 · C 回放记录 · R 重新进入`); return; }
+      if (replayMode) { state = "replay-complete"; const message = resultRecord.best.improved ? "记录已修复 // 历史完整度上升。" : "记录未改善 // 原始数据保留。"; const ending = chapterIndex === CHAPTERS.length - 1 ? endingRecord() : null; if (ending) finalEnding = ending; showStatus("brief", ending ? `最终记录 ${ending.id} // ${String(Math.round(ending.average)).padStart(2,"0")}%` : `回放 ${String(replayIndex + 1).padStart(2,"0")} // ${String(Math.round(integrity)).padStart(2,"0")}%`, ending ? ending.title : resultRecord.best.improved ? "记录已修复" : "记录已保留", `${ending ? ending.copy : message} C 返回回放 · R 新一轮`); return; }
+      if (chapterIndex === CHAPTERS.length - 1) { state = "won"; const ending = endingRecord(); finalEnding = ending; showStatus("brief", `最终记录 ${ending.id} // 信号 ${String(Math.round(ending.average)).padStart(2,"0")}%`, ending.title, `${ending.copy} F 查看档案 · C 回放记录 · R 重新进入`); return; }
       state = "interchapter"; showStatus("brief", `章节 ${currentChapter().id} // 记录恢复`, "门已开启", `完整度 ${String(Math.round(integrity)).padStart(2,"0")}% · 档案 AR-0${chapterIndex + 2} 已恢复 · ENTER / 左键继续`);
     }
     function updatePlayer(delta) { const dx = (keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0), dy = (keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0); if (!dx&&!dy) return; const length = Math.hypot(dx,dy), speed = Math.min(width,height) * .244; move(player,dx/length*speed*delta,dy/length*speed*delta); }
@@ -533,7 +554,7 @@
       if (!DEMO && !sheltered && dist(player.x,player.y,monster.x,monster.y) < player.r + monster.r + 2) endGame("lost");
     }
     function updateBait(now) { if (!bait) return; if (now >= bait.armedAt) bait.ready = true; if (bait.ready && bait.pulsesLeft > 0 && now >= bait.nextPulseAt) { const pulse = makePulse(bait.x,bait.y,"bait"); pulse.max = Math.min(width,height) * .38; pulses.push(pulse); bait.pulsesLeft -= 1; bait.nextPulseAt = now + 950; baitSound(); } if (now >= bait.expiresAt) { bait = null; showLog("诱饵静默。",1500); } }
-    function updateAmbientCue() { if (!ambientCue || ambientCue.triggered || dist(player.x,player.y,ambientCue.x,ambientCue.y) > ambientCue.r) return; ambientCue.triggered = true; environmentCueSound(ambientCue.type); showLog(ambientCue.line,3200); }
+    function updateAmbientCue() { if (!ambientCue || ambientCue.triggered || dist(player.x,player.y,ambientCue.x,ambientCue.y) > ambientCue.r) return; ambientCue.triggered = true; markCueConfirmed(chapterIndex); environmentCueSound(ambientCue.type); showLog(`${ambientCue.line} 线索已证实。`,3200); }
     function update(delta, now) {
       if (state.startsWith("prologue")) { updatePrologue(delta,now); return; }
       if (state !== "playing") return;
@@ -573,7 +594,20 @@
       if (state === "prologue-reveal" && now < prologue.anomalyUntil) { const a = clamp((prologue.anomalyUntil-now)/2200,0,1);ctx.save();ctx.translate(width*.76,height*.23);ctx.globalAlpha=a*.7;ctx.strokeStyle="#d44349";ctx.lineWidth=1.45;ctx.shadowColor="rgba(161,42,48,.82)";ctx.shadowBlur=9;ctx.beginPath();ctx.moveTo(-11,0);ctx.lineTo(-7,-5);ctx.lineTo(-3,4);ctx.lineTo(1,-7);ctx.lineTo(5,6);ctx.lineTo(10,-2);ctx.stroke();ctx.restore(); }
       if (active) drawPlayer(now);
     }
-    function render(now) { ctx.clearRect(0,0,width,height);if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now); }
+    function drawEndingVisual(ending, now) {
+      const cx=width*.5, cy=height*.5, phase=now*.001;
+      ctx.save();ctx.fillStyle="#000";ctx.fillRect(0,0,width,height);
+      if (ending.id === "ER-00") {
+        for(let index=0;index<76;index+=1){const x=cx+Math.sin(index*31.7+phase*.9)*width*(.12+(index%7)*.012), y=height*(.12+(index%13)*.058), length=12+(index%9)*8;ctx.globalAlpha=.05+(index%5)*.018;ctx.strokeStyle=index%11===0?"#a12a30":COLORS.white;ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.sin(phase+index)*2,y+length);ctx.stroke();}
+        ctx.globalAlpha=.42;ctx.fillStyle=COLORS.white;ctx.shadowColor="rgba(246,246,242,.48)";ctx.shadowBlur=18;ctx.beginPath();ctx.arc(cx,cy,2.3,0,Math.PI*2);ctx.fill();
+      } else if (ending.id === "ER-01") {
+        const radius=Math.min(width,height)*.22;ctx.globalAlpha=.48;ctx.strokeStyle=COLORS.white;ctx.lineWidth=1;ctx.setLineDash([2,13]);ctx.beginPath();ctx.arc(cx,cy,radius,.22,Math.PI*1.72);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.85;ctx.fillStyle=COLORS.white;ctx.shadowColor="rgba(246,246,242,.75)";ctx.shadowBlur=13;ctx.beginPath();ctx.arc(cx,cy,2.2,0,Math.PI*2);ctx.fill();ctx.translate(cx+radius*.70,cy-radius*.42);ctx.globalAlpha=.66;ctx.strokeStyle="#d44349";ctx.lineWidth=1.5;ctx.shadowColor="rgba(161,42,48,.9)";ctx.shadowBlur=12;ctx.beginPath();ctx.moveTo(-18,1);ctx.lineTo(-12,-7);ctx.lineTo(-6,6);ctx.lineTo(0,-9);ctx.lineTo(7,6);ctx.lineTo(15,-2);ctx.stroke();
+      } else {
+        const water=height*.49;ctx.globalAlpha=.55;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.9;ctx.beginPath();for(let x=width*.17;x<width*.83;x+=4){const y=water+Math.sin(x*.027+phase*.8)*1.5; x===width*.17?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();ctx.globalAlpha=.72;ctx.strokeStyle=COLORS.gold;ctx.lineWidth=1.2;ctx.shadowColor="rgba(211,170,88,.86)";ctx.shadowBlur=12;ctx.beginPath();ctx.moveTo(cx,water+width*.07);ctx.bezierCurveTo(cx-width*.03,water,width*.06,water-width*.13,cx+width*.13,height*.14);ctx.stroke();ctx.fillStyle="#e3bf72";ctx.beginPath();ctx.arc(cx+width*.13,height*.14,2.3,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.18;ctx.strokeStyle=COLORS.white;ctx.setLineDash([3,11]);ctx.beginPath();ctx.arc(cx,water+width*.07,Math.min(width,height)*.22,-.9,.8);ctx.stroke();
+      }
+      ctx.restore();
+    }
+    function render(now) { ctx.clearRect(0,0,width,height);if(finalEnding&&(state==="won"||state==="replay-complete")){drawEndingVisual(finalEnding,now);return;}if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now); }
     function frame(now) { const delta=Math.min(.035,(now-lastTime)/1000);lastTime=now;update(delta,now);render(now);requestAnimationFrame(frame); }
     function actionInput() { if(state==="prologue-title")beginPrologue();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); else if(state==="replay-complete")openReplay(); }
     addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
@@ -588,7 +622,7 @@
     replayEl.addEventListener("pointerdown",event=>{if(event.target===replayEl)closeReplay();});
     replayListEl.addEventListener("click",event=>{const item = event.target.closest("[data-index]");if(item&&!item.disabled)startReplay(Number(item.dataset.index));});
     addEventListener("resize",resize);
-    resize();if(DEMO){loadChapter(0,true);beginChapter();if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};openReplay();}}else loadPrologue(true);requestAnimationFrame(frame);
+    resize();if(DEMO){loadChapter(0,true);beginChapter();if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100};state="won";showStatus("brief",`最终记录 ${PREVIEW_ENDING}`,PREVIEW_ENDING==="ER-00"?"漂流噪声":PREVIEW_ENDING==="ER-01"?"回声仍在":"岸上无声","预览 // 最终记录画面");}}else loadPrologue(true);requestAnimationFrame(frame);
   })();
   </script>
 </body>

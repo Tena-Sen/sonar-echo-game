@@ -34,3 +34,4 @@
 | `ArchiveSignalLayer` | 管理随机失真语音、合成噪声、AR-01 解锁、可翻阅档案界面和序章信号干扰转场。 |
 | `IntegrityArchiveLayer` | 以每章声呐使用和失败次数计算信号完整度，驱动五份档案的逐段恢复、跨档案导航和 HUD 读数。 |
 | `ReplayEndingLayer` | 保存章节历史最佳完整度，驱动隐藏最终记录、局部环境声线索与可暂停的章节回放列表。 |
+| `EndingEvidenceLayer` | 绘制 ER-00、ER-01、ER-02 的独立 Canvas 终局画面，保存单章无伤/低声呐勋记，并将环境声线索同步为档案证据状态。 |
