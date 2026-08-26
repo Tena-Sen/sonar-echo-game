@@ -223,26 +223,26 @@
     const CHAPTERS = [
       {
         id: "I", title: "静水观测", subtitle: "先听见它，再决定前进。", mood: "观察巡逻", fade: 1240, pulseRange: .62, pulseSpeed: .72, cooldown: 2250, baseMonsterSpeed: .060,
-        player: [.09,.86], exit: [.92,.13], relays:[[.76,.14],[.92,.28]], cue:{ p:[.61,.57], type:"return", line:"反射码 // 再次折返。" }, records: [{ p:[.68,.22], line:"记录 01 // 水位稳定。它在目标前折返。" }],
+        player: [.09,.86], exit: [.92,.13], relays:[[.76,.14],[.92,.28]], relayPattern:{mode:"sync",window:900,label:"双信道同步"}, decoy:{p:[.54,.73],type:"return"}, cue:{ p:[.61,.57], type:"return", line:"反射码 // 再次折返。" }, records: [{ p:[.68,.22], line:"记录 01 // 水位稳定。它在目标前折返。" }],
         monsters: [{ p:[.52,.59], route:[[.52,.59],[.73,.59],[.73,.36],[.58,.36]], speed: .034 }], shelters: [],
         walls: [...BORDER,[.16,.10,.008,.57],[.16,.48,.18,.009],[.31,.22,.008,.50],[.31,.22,.17,.009],[.48,.10,.008,.44],[.48,.54,.22,.009],[.70,.26,.008,.55],[.70,.26,.20,.009],[.86,.11,.008,.45],[.58,.75,.28,.009],[.48,.75,.008,.14],[.16,.75,.18,.009],[.095,.79,.115,.009]]
       },
       {
         id: "II", title: "诱饵走廊", subtitle: "声音不必总从你身上发出。", mood: "主动诱导", fade: 970, pulseRange: .56, pulseSpeed: .69, cooldown: 2450, baseMonsterSpeed: .078,
-        player: [.09,.14], exit: [.92,.86], relays:[[.68,.82],[.92,.76]], cue:{ p:[.63,.50], type:"confirm", line:"外置频段 // 收到确认。" }, records: [{ p:[.31,.22], line:"记录 02 // 外置声源已校准。", grant:"bait" },{ p:[.71,.73], line:"记录 03 // 走廊尽头仍有回声。" }],
+        player: [.09,.14], exit: [.92,.86], relays:[[.68,.82],[.92,.76]], relayPattern:{mode:"p1-first",window:1200,label:"P1 先行确认"}, decoy:{p:[.47,.46],type:"confirm"}, cue:{ p:[.63,.50], type:"confirm", line:"外置频段 // 收到确认。" }, records: [{ p:[.31,.22], line:"记录 02 // 外置声源已校准。", grant:"bait" },{ p:[.71,.73], line:"记录 03 // 走廊尽头仍有回声。" }],
         monsters: [{ p:[.46,.42], route:[[.46,.42],[.66,.42],[.66,.68],[.46,.68]], speed:.041 },{ p:[.79,.73], route:[[.79,.73],[.90,.73],[.90,.48],[.79,.48]], speed:.038 }], shelters: [],
         walls: [...BORDER,[.19,.12,.008,.58],[.19,.70,.18,.009],[.37,.245,.008,.60],[.37,.245,.21,.009],[.57,.09,.008,.51],[.57,.60,.18,.009],[.75,.30,.008,.57],[.75,.30,.15,.009],[.09,.36,.16,.009],[.44,.76,.17,.009],[.845,.645,.09,.009]]
       },
       {
         id: "III", title: "无声舱", subtitle: "静默不是安全，只是一次重新判断。", mood: "藏身重置", fade: 790, pulseRange: .53, pulseSpeed: .67, cooldown: 2650, baseMonsterSpeed: .091,
-        player: [.09,.84], exit: [.92,.15], relays:[[.77,.17],[.92,.27]], cue:{ p:[.48,.72], type:"knock", line:"舱壁 // 提前响应。" }, records: [{ p:[.30,.56], line:"记录 04 // 静默舱会切断追踪。" },{ p:[.72,.29], line:"记录 05 // 不要在门前停留。" }],
+        player: [.09,.84], exit: [.92,.15], relays:[[.77,.17],[.92,.27]], relayPattern:{mode:"p2-first",window:900,label:"P2 先行确认"}, decoy:{p:[.58,.48],type:"knock"}, cue:{ p:[.48,.72], type:"knock", line:"舱壁 // 提前响应。" }, records: [{ p:[.30,.56], line:"记录 04 // 静默舱会切断追踪。" },{ p:[.72,.29], line:"记录 05 // 不要在门前停留。" }],
         monsters: [{ p:[.39,.37], route:[[.39,.37],[.57,.37],[.57,.57],[.39,.57]], speed:.045 },{ p:[.77,.64], route:[[.77,.64],[.89,.64],[.89,.36],[.77,.36]], speed:.042 }],
         shelters: [[.46,.72,.036],[.70,.56,.034]],
         walls: [...BORDER,[.14,.11,.008,.62],[.14,.35,.15,.009],[.29,.21,.008,.62],[.29,.21,.16,.009],[.45,.10,.008,.50],[.45,.60,.19,.009],[.64,.25,.008,.59],[.64,.25,.21,.009],[.84,.10,.008,.46],[.71,.74,.16,.009],[.455,.785,.008,.105],[.12,.79,.13,.009],[.815,.61,.10,.009]]
       },
       {
         id: "IV", title: "崩塌之门", subtitle: "最后一条记录会唤醒整座迷宫。", mood: "追猎撤离", fade: 660, pulseRange: .50, pulseSpeed: .65, cooldown: 2850, baseMonsterSpeed: .102, huntDuration: 25000,
-        player: [.09,.85], exit: [.92,.12], relays:[[.79,.16],[.92,.25]], cue:{ p:[.79,.20], type:"uplink", line:"上行通道 // 仍未切断。" }, records: [{ p:[.47,.47], line:"记录 06 // 门正在收拢。现在，离开。", trigger:"hunt" }],
+        player: [.09,.85], exit: [.92,.12], relays:[[.79,.16],[.92,.25]], relayPattern:{mode:"break-sync",window:800,label:"释放后重同步"}, decoy:{p:[.38,.71],type:"uplink"}, cue:{ p:[.79,.20], type:"uplink", line:"上行通道 // 仍未切断。" }, records: [{ p:[.47,.47], line:"记录 06 // 门正在收拢。现在，离开。", trigger:"hunt" }],
         monsters: [{ p:[.25,.31], route:[[.25,.31],[.46,.31],[.46,.60],[.25,.60]], speed:.048 },{ p:[.67,.31], route:[[.67,.31],[.87,.31],[.87,.60],[.67,.60]], speed:.049 },{ p:[.69,.76], route:[[.69,.76],[.88,.76],[.88,.48],[.69,.48]], speed:.045 }],
         shelters: [[.54,.72,.034]],
         walls: [...BORDER,[.17,.10,.008,.54],[.17,.64,.18,.009],[.35,.24,.008,.60],[.35,.24,.19,.009],[.54,.10,.008,.46],[.54,.56,.17,.009],[.71,.29,.008,.55],[.71,.29,.17,.009],[.86,.10,.008,.42],[.10,.42,.18,.009],[.48,.79,.19,.009],[.77,.69,.12,.009]]
@@ -259,13 +259,15 @@
     const PREVIEW_COOP = QUERY.has("coop");
     const PREVIEW_RELAY = QUERY.has("relay");
     const PREVIEW_FAR = QUERY.has("far");
+    const PREVIEW_TRIAL = QUERY.has("trial");
+    const PREVIEW_DECOY = QUERY.has("decoy");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
     let chapterIndex = 0, state = "prologue-title", player, player2, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue, ambientCue, audioGraph;
     let sonarCount = 0, runDeaths = 0, charge = 3, nextChargeAt = 0, alert = 0, lastEchoAt = 0, logUntil = 0, huntUntil = 0, lastHuntTargetAt = 0, lastDemoAt = 0;
     let activeChapter = -1, chapterFailures = 0, chapterStartSonar = 0, chapterIntegrity = 100;
     let archiveStore = (() => { try { const legacy = localStorage.getItem("sonar-ar01") === "1"; const stored = JSON.parse(localStorage.getItem("sonar-archives") || "{}"); if (legacy && !stored["AR-01"]) stored["AR-01"] = 100; return stored; } catch { return {}; } })();
-    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", settingsReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null, threatLevel = 0, shelterLatched = false, silencePulseUntil = 0, calibrationTimer = 0, coOp = false, analysisCharge = 2, analysisNextAt = 0, relays = [], relayHoldAt = 0, coopDowns = 0, coopAlertPeak = 0, partnerHint = 0, lastPartnerCueAt = 0, instructionTimer = 0;
+    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", settingsReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null, threatLevel = 0, shelterLatched = false, silencePulseUntil = 0, calibrationTimer = 0, coOp = false, analysisCharge = 2, analysisNextAt = 0, relays = [], relayTask = null, coopDowns = 0, coopAlertPeak = 0, partnerHint = 0, lastPartnerCueAt = 0, instructionTimer = 0, falseCue = null;
     let bestStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-best-integrity") || "{}"); } catch { return {}; } })();
     let badgeStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-chapter-badges") || "{}"); } catch { return {}; } })();
     let cueStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-cue-evidence") || "{}"); } catch { return {}; } })();
@@ -386,6 +388,7 @@
       if (average >= 60) return { id:"ER-01", title:"回声仍在", copy:"第二响应源 // 已确认。坐标仍不可读。", average };
       return { id:"ER-00", title:"漂流噪声", copy:"记录判定 // 环境干扰。监听站未恢复。", average };
     }
+    function cooperativeEndingRecord() { const marks=CHAPTERS.flatMap((_,index)=>{const badges=badgesFor(index);return [badges.coopNoDown,badges.coopLowAlert].filter(Boolean);}), harmony=marks.length; if(harmony>=8)return {id:"CR-02",title:"同相离岸",copy:"双信道记录 // 相位一致。岸上收到两道归零。",harmony};if(harmony>=4)return {id:"CR-01",title:"双声残响",copy:"双信道记录 // 有一人仍在回应。",harmony};return {id:"CR-00",title:"失配记录",copy:"双信道记录 // 相位漂移。没有人确认出口。",harmony}; }
     function recoveredPages(index) { const integrity = entryIntegrity(index); return integrity >= 80 ? 3 : integrity >= 55 ? 2 : integrity > 0 ? 1 : 0; }
     function updateArchivePage() {
       const entry = ARCHIVE_ENTRIES[archiveEntryIndex], integrity = entryIntegrity(archiveEntryIndex), recovered = recoveredPages(archiveEntryIndex);
@@ -470,9 +473,9 @@
       alertEl.classList.toggle("high", alert >= .62);
       integrityEl.textContent = `完整度 // ${String(Math.round(chapterIntegrity)).padStart(2,"0")}%`;
       recordCountEl.textContent = `${String(records.filter(record => record.collected).length).padStart(2,"0")} / ${String(records.length).padStart(2,"0")}`;
-      exitStateEl.textContent = exit.unlocked ? "出口已解锁" : coOp && records.every(record=>record.collected) ? "分站待同步" : "出口封存";
+      exitStateEl.textContent = exit.unlocked ? "出口 // 已解锁" : coOp && records.every(record=>record.collected) ? `校验 // ${relayTask?.label || "分站待同步"}` : "出口 // 封存";
       exitStateEl.classList.toggle("unlocked", exit.unlocked);
-      if (coOp) { const p1=isDowned(player)?"倒地":"在线", p2=isDowned(player2)?"倒地":"在线"; coopChannelEl.classList.add("active"); coopChannelEl.innerHTML=`双信道 // P1 ${p1}<br><span class="${isDowned(player2)?"down":""}">P2 ${p2} · 解析 ${String(analysisCharge).padStart(2,"0")}</span>`; }
+      if (coOp) { const p1=isDowned(player)?"中断":"稳定", p2=isDowned(player2)?"中断":"稳定"; coopChannelEl.classList.add("active"); coopChannelEl.innerHTML=`双信道阵列 // ${relayTask?.label || "待校验"}<br>探路回路 / P1 ${p1}<br><span class="${isDowned(player2)?"down":""}">解码回路 / P2 ${p2} · CHG ${String(analysisCharge).padStart(2,"0")}</span>`; }
       else coopChannelEl.classList.remove("active");
       if (huntUntil > now) { const seconds = Math.ceil((huntUntil - now) / 1000); timerEl.textContent = `门闭合 // ${String(seconds).padStart(2,"0")}s`; timerEl.classList.add("hot"); }
       else { timerEl.textContent = bait && bait.ready ? `诱饵 // ${bait.pulsesLeft}` : ""; timerEl.classList.remove("hot"); }
@@ -586,14 +589,16 @@
       player = { ...pointAt(chapter.player), r:5.5, exposedUntil:0 };
       player2 = coOp ? { x:player.x + Math.min(width,height)*.028, y:player.y, r:5.2, exposedUntil:0, downedUntil:0 } : null;
       exit = { ...pointAt(chapter.exit), r:7, revealUntil:0, unlocked:false };
-      relays = coOp ? (chapter.relays || []).map((point,id)=>({ ...pointAt(point), id, r:Math.min(width,height)*.027, revealUntil:0, engaged:false })) : []; relayHoldAt=0; coopDowns=0; coopAlertPeak=0; partnerHint=0; lastPartnerCueAt=0;
+      relays = coOp ? (chapter.relays || []).map((point,id)=>({ ...pointAt(point), id, r:Math.min(width,height)*.027, revealUntil:0, engaged:false })) : []; coopDowns=0; coopAlertPeak=0; partnerHint=0; lastPartnerCueAt=0;
+      relayTask = coOp ? { ...chapter.relayPattern, stage:"idle", startedAt:0, releasedAt:0, completed:false } : null;
+      falseCue = coOp && chapter.decoy ? { ...pointAt(chapter.decoy.p), type:chapter.decoy.type, triggered:false } : null;
       ambientCue = { ...pointAt(chapter.cue.p), type:chapter.cue.type, line:chapter.cue.line, r:Math.min(width,height)*.072, triggered:false };
       monsters = chapter.monsters.map((monster, id) => ({ ...pointAt(monster.p), id, r:10, route:monster.route.map(pointAt), routeIndex:0, speed:monster.speed, target:null, mode:"patrol", searchUntil:0, revealUntil:0, phase:Math.random() * Math.PI * 2 }));
       if (audioGraph) refreshMonsterVoices();
       records = chapter.records.map((record, id) => ({ ...pointAt(record.p), id, r:7, line:record.line, grant:record.grant, trigger:record.trigger, collected:false, revealUntil:0 }));
       shelters = chapter.shelters.map(([x,y,r]) => ({ x:x * width, y:y * height, r:r * Math.min(width,height), revealUntil:0 }));
       pulses = []; traces = []; reveal = new Array(chapter.walls.length).fill(0); keys = Object.create(null); bait = null;
-      charge = 3; analysisCharge = 2; analysisNextAt = 0; alert = 0; huntUntil = 0; lastHuntTargetAt = 0; lastEchoAt = 0; lastDemoAt = performance.now() - 1600;
+      charge = 3; analysisCharge = 2; analysisNextAt = 0; alert = 0; huntUntil = 0; lastHuntTargetAt = 0; lastEchoAt = 0; lastDemoAt = performance.now() - (DEMO ? 3000 : 1600);
       if (resetRun) { sonarCount = 0; runDeaths = 0; }
       if (activeChapter !== chapterIndex || resetRun) { chapterFailures = 0; chapterStartSonar = sonarCount; chapterIntegrity = 100; activeChapter = chapterIndex; }
       state = "brief";
@@ -618,6 +623,7 @@
         pulses.forEach(pulse => { pulse.x *= sx; pulse.y *= sy; pulse.radius *= Math.min(sx,sy); });
         if (bait) { bait.x *= sx; bait.y *= sy; }
         if (ambientCue) { ambientCue.x *= sx; ambientCue.y *= sy; ambientCue.r *= Math.min(sx,sy); }
+        if (falseCue) { falseCue.x *= sx; falseCue.y *= sy; }
         if (prologue) { prologue.anchor.x = width * .50; prologue.anchor.y = height * .32; }
       }
     }
@@ -676,8 +682,8 @@
       if (state !== "playing") return;
       if (result === "lost") { state = "lost"; runDeaths += 1; chapterFailures += 1; chapterIntegrity = calculateIntegrity(); failSound(); showStatus("danger", `章节 ${currentChapter().id} // 信号中断`, "你被吞噬了", `R // 重载本章记录。当前完整度 ${String(Math.round(chapterIntegrity)).padStart(2,"0")}%` ); return; }
       const resultRecord = finalizeChapterRecord(), integrity = resultRecord.integrity, coopMarks=coOp?[resultRecord.badges.coopNoDown?"无断线":"",resultRecord.badges.coopLowAlert?"低警觉":""].filter(Boolean).join(" · "):"";
-      if (replayMode) { state = "replay-complete"; const message = resultRecord.best.improved ? "记录已修复 // 历史完整度上升。" : "记录未改善 // 原始数据保留。"; const ending = chapterIndex === CHAPTERS.length - 1 ? endingRecord() : null; if (ending) finalEnding = ending; showStatus("brief", ending ? `最终记录 ${ending.id} // ${String(Math.round(ending.average)).padStart(2,"0")}%` : `回放 ${String(replayIndex + 1).padStart(2,"0")} // ${String(Math.round(integrity)).padStart(2,"0")}%`, ending ? ending.title : resultRecord.best.improved ? "记录已修复" : "记录已保留", `${ending ? ending.copy : message} C 返回回放 · R 新一轮`); return; }
-      if (chapterIndex === CHAPTERS.length - 1) { state = "won"; const ending = endingRecord(); finalEnding = ending; showStatus("brief", `最终记录 ${ending.id} // 信号 ${String(Math.round(ending.average)).padStart(2,"0")}%`, ending.title, `${ending.copy} F 查看档案 · C 回放记录 · R 重新进入`); return; }
+      if (replayMode) { state = "replay-complete"; const message = resultRecord.best.improved ? "记录已修复 // 历史完整度上升。" : "记录未改善 // 原始数据保留。"; const ending = chapterIndex === CHAPTERS.length - 1 ? (coOp?cooperativeEndingRecord():endingRecord()) : null; if (ending) finalEnding = ending; showStatus("brief", ending ? `最终记录 ${ending.id} // ${coOp?`默契 ${ending.harmony}/08`:String(Math.round(ending.average)).padStart(2,"0")+"%"}` : `回放 ${String(replayIndex + 1).padStart(2,"0")} // ${String(Math.round(integrity)).padStart(2,"0")}%`, ending ? ending.title : resultRecord.best.improved ? "记录已修复" : "记录已保留", `${ending ? ending.copy : message} C 返回回放 · R 新一轮`); return; }
+      if (chapterIndex === CHAPTERS.length - 1) { state = "won"; const ending = coOp?cooperativeEndingRecord():endingRecord(); finalEnding = ending; showStatus("brief", `最终记录 ${ending.id} // ${coOp?`默契 ${ending.harmony}/08`:"信号 "+String(Math.round(ending.average)).padStart(2,"0")+"%"}`, ending.title, `${ending.copy} F 查看档案 · C 回放记录 · R 重新进入`); return; }
       state = "interchapter"; showStatus("brief", `章节 ${currentChapter().id} // 记录恢复`, "门已开启", `完整度 ${String(Math.round(integrity)).padStart(2,"0")}%${coopMarks?` · 协作勋记 ${coopMarks}`:""} · 档案 AR-0${chapterIndex + 2} 已恢复 · ENTER / 左键继续`);
     }
     function updatePlayer(delta) { if(isDowned(player))return; const dx = (keys.d||(!coOp&&keys.arrowright)?1:0)-(keys.a||(!coOp&&keys.arrowleft)?1:0), dy = (keys.s||(!coOp&&keys.arrowdown)?1:0)-(keys.w||(!coOp&&keys.arrowup)?1:0); if (!dx&&!dy) return; const length = Math.hypot(dx,dy), speed = Math.min(width,height) * .244; move(player,dx/length*speed*delta,dy/length*speed*delta); }
@@ -694,7 +700,37 @@
     function updateBait(now) { if (!bait) return; if (now >= bait.armedAt) bait.ready = true; if (bait.ready && bait.pulsesLeft > 0 && now >= bait.nextPulseAt) { const pulse = makePulse(bait.x,bait.y,"bait"); pulse.max = Math.min(width,height) * .38; pulses.push(pulse); bait.pulsesLeft -= 1; bait.nextPulseAt = now + 950; baitSound(); } if (now >= bait.expiresAt) { bait = null; showLog("诱饵静默。",1500); } }
     function updateAmbientCue() { if (!ambientCue || ambientCue.triggered || dist(player.x,player.y,ambientCue.x,ambientCue.y) > ambientCue.r) return; ambientCue.triggered = true; markCueConfirmed(chapterIndex); environmentCueSound(ambientCue.type); showLog(`${ambientCue.line} 线索已证实。`,3200); }
     function relaySound() { noiseBurst(.16,.012,920,3,-.52);setTimeout(()=>{noiseBurst(.16,.012,920,3,.52);tone(286,.22,.014,"sine",420,0);},120); }
-    function updateCoopRelays(now) { if(!coOp||exit.unlocked||relays.length!==2||!records.every(record=>record.collected))return; const left=relays[0],right=relays[1];left.engaged=!isDowned(player)&&dist(player.x,player.y,left.x,left.y)<left.r;right.engaged=!isDowned(player2)&&dist(player2.x,player2.y,right.x,right.y)<right.r; if(left.engaged&&right.engaged){if(!relayHoldAt){relayHoldAt=now;showLog("分站触点 // 双信道同步中。",1500);relaySound();}if(now-relayHoldAt>=900){exit.unlocked=true;exit.revealUntil=now+currentChapter().fade*2.2;showLog("双信道同步完成 // 撤离门开启。",3000);relaySound();}}else relayHoldAt=0; }
+    function falseCueSound(type,pan) { if(!audio)return;if(type==="return"){tone(82,.42,.016,"triangle",59,pan);setTimeout(()=>noiseBurst(.10,.009,760,4,pan),140);}else if(type==="confirm"){noiseBurst(.16,.010,1280,6,pan);tone(250,.16,.011,"sine",314,pan);}else if(type==="knock"){noiseBurst(.045,.018,170,1.5,pan);setTimeout(()=>noiseBurst(.045,.012,156,1.5,pan),228);}else{tone(620,.22,.010,"sine",890,pan);noiseBurst(.18,.008,1080,7,pan);} }
+    function resetRelayTask(expired=false) { if(!relayTask)return;relayTask.stage="idle";relayTask.startedAt=0;relayTask.releasedAt=0;if(expired){noiseBurst(.07,.006,1180,5,0);showLog("分站校验失步 // 重新读取。",1500);} }
+    function completeRelay(now) { exit.unlocked=true;exit.revealUntil=now+currentChapter().fade*2.2;relayTask.completed=true;showLog("双信道校验完成 // 撤离门开启。",3000);relaySound(); }
+    function updateCoopRelays(now) {
+      if(!coOp||exit.unlocked||relays.length!==2||!relayTask||!records.every(record=>record.collected)) return;
+      const p1on=!isDowned(player)&&dist(player.x,player.y,relays[0].x,relays[0].y)<relays[0].r;
+      const p2on=!isDowned(player2)&&dist(player2.x,player2.y,relays[1].x,relays[1].y)<relays[1].r;
+      relays[0].engaged=p1on; relays[1].engaged=p2on;
+      const start=(stage,line)=>{ relayTask.stage=stage; relayTask.startedAt=now; showLog(line,1700); relaySound(); };
+      if(relayTask.mode==="sync") {
+        if(p1on&&p2on) { if(!relayTask.startedAt) start("syncing","分站触点 // 双信道同步中。"); if(now-relayTask.startedAt>=relayTask.window) completeRelay(now); }
+        else resetRelayTask();
+        return;
+      }
+      if(relayTask.mode==="p1-first") {
+        if(relayTask.stage==="idle"&&p1on&&!p2on) start("await-p2","P1 已锁定 // P2 请响应。");
+        else if(relayTask.stage==="await-p2") { if(!p1on) resetRelayTask(); else if(now-relayTask.startedAt>relayTask.window) resetRelayTask(true); else if(p2on) completeRelay(now); }
+        return;
+      }
+      if(relayTask.mode==="p2-first") {
+        if(relayTask.stage==="idle"&&p2on&&!p1on) start("await-p1","P2 已锁定 // P1 请响应。");
+        else if(relayTask.stage==="await-p1") { if(!p2on) resetRelayTask(); else if(now-relayTask.startedAt>relayTask.window) resetRelayTask(true); else if(p1on) completeRelay(now); }
+        return;
+      }
+      if(relayTask.mode==="break-sync") {
+        if(relayTask.stage==="idle"&&p1on&&p2on) start("latched","分站触点 // 同步后释放。");
+        else if(relayTask.stage==="latched"&&!p1on&&!p2on) { relayTask.stage="released"; relayTask.releasedAt=now; showLog("触点已释放 // 重新同步。",1700); relaySound(); }
+        else if(relayTask.stage==="released") { if(now-relayTask.releasedAt>relayTask.window) resetRelayTask(true); else if(p1on&&p2on) completeRelay(now); }
+      }
+    }
+    function updateFalseCue(now) { if(!coOp||!falseCue||falseCue.triggered||!player2||isSheltered(player)||isSheltered(player2))return;const scale=Math.min(width,height),gap=dist(player.x,player.y,player2.x,player2.y),listener={x:(player.x+player2.x)*.5,y:(player.y+player2.y)*.5};if(gap<scale*.31||dist(listener.x,listener.y,falseCue.x,falseCue.y)<scale*.10)return;falseCue.triggered=true;const pan=clamp((falseCue.x-listener.x)/(width*.34),-1,1);falseCueSound(falseCue.type,pan);showLog("远距回声 // 未校验。",2200); }
     function updatePartnerFeedback(now) { if(!coOp||!player2||state!=="playing"||isDowned(player)||isDowned(player2)){partnerHint=0;return;}const gap=dist(player.x,player.y,player2.x,player2.y), threshold=Math.min(width,height)*.34;partnerHint=clamp((gap-threshold)/(Math.min(width,height)*.20),0,1);if(partnerHint>.04&&audio&&now-lastPartnerCueAt>1700){const pan=clamp((player2.x-player.x)/(width*.34),-1,1);tone(72,.13,.012+partnerHint*.012,"triangle",56,pan);setTimeout(()=>tone(93,.11,.009+partnerHint*.008,"sine",76,pan),125);lastPartnerCueAt=now;} }
     function updateShelterFeedback(now) { const sheltered=teamSheltered(); if(sheltered&&!shelterLatched){shelterLatched=true;silencePulseUntil=now+620;silenceResetSound();showLog("静默舱 // 声场归零。",2100);} if(!sheltered)shelterLatched=false; }
     function updateThreatFeedback(now) {
@@ -719,7 +755,7 @@
       updateCoopRelays(now); updatePartnerFeedback(now);
       if(coOp&&((player.downedUntil&&now>=player.downedUntil)||(player2?.downedUntil&&now>=player2.downedUntil))){showLog("重连窗口关闭。",1600);endGame("lost");return;}
       if(coOp&&analysisCharge<2&&now>=analysisNextAt){analysisCharge+=1;analysisNextAt=analysisCharge<2?now+1550:0;}
-      updateBait(now); updateAmbientCue(); pulses.forEach(pulse => { pulse.previousRadius=pulse.radius; pulse.radius += pulse.speed*delta; scanPulse(pulse,now); }); pulses = pulses.filter(pulse => { if (pulse.radius >= pulse.max) { traces.push({ x:pulse.x, y:pulse.y, radius:pulse.max, type:pulse.type, expires:now+720 }); return false; } return true; }); traces = traces.filter(trace => trace.expires > now);
+      updateBait(now); updateAmbientCue(); updateFalseCue(now); pulses.forEach(pulse => { pulse.previousRadius=pulse.radius; pulse.radius += pulse.speed*delta; scanPulse(pulse,now); }); pulses = pulses.filter(pulse => { if (pulse.radius >= pulse.max) { traces.push({ x:pulse.x, y:pulse.y, radius:pulse.max, type:pulse.type, expires:now+720 }); return false; } return true; }); traces = traces.filter(trace => trace.expires > now);
       if (huntUntil > now && !teamSheltered() && now - lastHuntTargetAt > 520) { const target=coOp&&player2&&dist(player2.x,player2.y,monsters[0]?.x||0,monsters[0]?.y||0)<dist(player.x,player.y,monsters[0]?.x||0,monsters[0]?.y||0)?player2:player;monsters.forEach(monster => setMonsterTarget(monster,target.x,target.y,now)); lastHuntTargetAt = now; }
       monsters.forEach(monster => updateMonster(monster,delta,now));
       if (huntUntil && now > huntUntil) { showLog("门已闭合。",1800); endGame("lost"); }
@@ -734,13 +770,14 @@
     function drawMonster(monster, now) { const alpha=alphaUntil(monster.revealUntil,now); if(alpha<=0)return; const jitter=monster.mode==="search"?Math.sin(now*.028+monster.phase)*1.6:0, points=[[-12,0],[-8,-5],[-4,4],[0,-7],[4,6],[9,-3],[13,1]];ctx.save();ctx.translate(monster.x+jitter,monster.y);ctx.globalAlpha=Math.pow(alpha,.72);ctx.strokeStyle="#d44349";ctx.lineWidth=1.45;ctx.shadowColor="rgba(161,42,48,.8)";ctx.shadowBlur=8;ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();ctx.fillStyle="#e95a5f";ctx.beginPath();ctx.arc(-2,-1,1.1,0,Math.PI*2);ctx.fill();ctx.restore(); }
     function drawRecord(record, now) { const alpha=alphaUntil(record.revealUntil,now);if(alpha<=0)return;ctx.save();ctx.translate(record.x,record.y);ctx.rotate(Math.PI/4);ctx.globalAlpha=Math.pow(alpha,.56);ctx.strokeStyle=COLORS.gold;ctx.lineWidth=1.15;ctx.shadowColor="rgba(211,170,88,.82)";ctx.shadowBlur=9;ctx.strokeRect(-3.4,-3.4,6.8,6.8);ctx.restore(); }
     function drawShelter(shelter, now) { const alpha=alphaUntil(shelter.revealUntil,now);if(alpha<=0)return;ctx.save();ctx.globalAlpha=Math.pow(alpha,.44);ctx.strokeStyle=COLORS.white;ctx.lineWidth=.8;ctx.setLineDash([3,6]);ctx.beginPath();ctx.arc(shelter.x,shelter.y,shelter.r,0,Math.PI*2);ctx.stroke();ctx.restore(); }
-    function drawRelays(now) { if(!coOp||!relays.length||!records.every(record=>record.collected))return;relays.forEach((relay,index)=>{const pulse=relay.engaged?.76:clamp(Math.max(alphaUntil(relay.revealUntil,now),.28),0,1);ctx.save();ctx.translate(relay.x,relay.y);ctx.globalAlpha=pulse;ctx.strokeStyle=COLORS.white;ctx.lineWidth=relay.engaged?1.25:.75;ctx.shadowColor="rgba(246,246,242,.55)";ctx.shadowBlur=relay.engaged?9:3;ctx.setLineDash(relay.engaged?[]:[2,6]);ctx.beginPath();ctx.arc(0,0,relay.r*.48,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(-relay.r*.76,0);ctx.lineTo(-relay.r*.38,0);ctx.moveTo(relay.r*.38,0);ctx.lineTo(relay.r*.76,0);ctx.stroke();ctx.font="7px ui-monospace";ctx.fillStyle=COLORS.white;ctx.fillText(index===0?"P1":"P2",-6,-relay.r*.82);ctx.restore();}); }
+    function relayExpected(index) { if(!relayTask)return false;if(relayTask.mode==="sync")return true;if(relayTask.mode==="p1-first")return relayTask.stage==="await-p2"?index===1:index===0;if(relayTask.mode==="p2-first")return relayTask.stage==="await-p1"?index===0:index===1;return true; }
+    function drawRelays(now) { if(!coOp||!relays.length||!records.every(record=>record.collected))return;relays.forEach((relay,index)=>{const expected=relayExpected(index),pulse=relay.engaged?.76:expected?.54:clamp(Math.max(alphaUntil(relay.revealUntil,now),.28),0,1);ctx.save();ctx.translate(relay.x,relay.y);ctx.globalAlpha=pulse;ctx.strokeStyle=COLORS.white;ctx.lineWidth=relay.engaged?1.25:expected?1.0:.75;ctx.shadowColor="rgba(246,246,242,.55)";ctx.shadowBlur=relay.engaged?9:expected?6:3;ctx.setLineDash(relay.engaged||expected?[]:[2,6]);ctx.beginPath();ctx.arc(0,0,relay.r*.48,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(-relay.r*.76,0);ctx.lineTo(-relay.r*.38,0);ctx.moveTo(relay.r*.38,0);ctx.lineTo(relay.r*.76,0);ctx.stroke();ctx.font="7px ui-monospace";ctx.fillStyle=COLORS.white;ctx.fillText(index===0?"P1":"P2",-6,-relay.r*.82);ctx.restore();}); }
     function drawExit(now) { const alpha=exit.unlocked?Math.max(alphaUntil(exit.revealUntil,now),.22):alphaUntil(exit.revealUntil,now);if(alpha<=0)return;ctx.save();ctx.globalAlpha=Math.pow(alpha,.68);const glow=ctx.createRadialGradient(exit.x,exit.y,0,exit.x,exit.y,18);glow.addColorStop(0,"rgba(211,170,88,.66)");glow.addColorStop(1,"rgba(211,170,88,0)");ctx.fillStyle=glow;ctx.beginPath();ctx.arc(exit.x,exit.y,18,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#e3bf72";ctx.lineWidth=1.05;ctx.shadowColor="rgba(211,170,88,.72)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(exit.x,exit.y,exit.unlocked?4:3,0,Math.PI*2);ctx.stroke();if(!exit.unlocked){ctx.beginPath();ctx.moveTo(exit.x-3,exit.y+3);ctx.lineTo(exit.x+3,exit.y-3);ctx.stroke();}ctx.restore(); }
     function drawBait(now) { if(!bait)return;ctx.save();ctx.globalAlpha=bait.ready?.64:.22;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.85;ctx.setLineDash([2,5]);ctx.beginPath();ctx.arc(bait.x,bait.y,bait.ready?8:4,0,Math.PI*2);ctx.stroke();ctx.restore(); }
     function drawSilenceReset(now) { if(silencePulseUntil<=now||reduceMotion)return;const p=clamp((silencePulseUntil-now)/620,0,1),r=(1-p)*Math.min(width,height)*.15+8;ctx.save();ctx.globalAlpha=Math.sin(p*Math.PI)*.42;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.8;ctx.setLineDash([2,9]);ctx.shadowColor="rgba(246,246,242,.65)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(player.x,player.y,r,0,Math.PI*2);ctx.stroke();ctx.restore(); }
     function drawDowned(entity,label,now) { const alpha=clamp((entity.downedUntil-now)/6800,0,1);ctx.save();ctx.translate(entity.x,entity.y);ctx.globalAlpha=.72+alpha*.18;ctx.strokeStyle="#d44349";ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.shadowColor="rgba(161,42,48,.84)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font="8px ui-monospace";ctx.fillStyle="#d44349";ctx.fillText(label,-6,-13);ctx.restore(); }
-    function drawPlayer(now) { if(isDowned(player)){drawDowned(player,"P1",now);return;} const exposure=clamp((player.exposedUntil-now)/460,0,1), sheltered=isSheltered(player);ctx.save();if(exposure>0){const halo=ctx.createRadialGradient(player.x,player.y,0,player.x,player.y,20);halo.addColorStop(0,`rgba(161,42,48,${exposure*.24})`);halo.addColorStop(1,"rgba(161,42,48,0)");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(player.x,player.y,20,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=.26+exposure*.34;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.75;ctx.beginPath();ctx.arc(player.x,player.y,7.5,.28,Math.PI*1.63);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.34)":"rgba(255,255,255,.95)";ctx.shadowBlur=sheltered?4:9;ctx.beginPath();ctx.arc(player.x,player.y,player.r*.62,0,Math.PI*2);ctx.fill();ctx.restore(); }
-    function drawPlayer2(now) { if(!coOp||!player2)return;if(isDowned(player2)){drawDowned(player2,"P2",now);return;}const exposure=clamp((player2.exposedUntil-now)/260,0,1), sheltered=isSheltered(player2);ctx.save();ctx.translate(player2.x,player2.y);ctx.globalAlpha=.54+exposure*.26;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.9;ctx.setLineDash([2,4]);ctx.beginPath();ctx.arc(0,0,7.3,-.52,Math.PI*1.22);ctx.stroke();ctx.setLineDash([]);ctx.rotate(Math.PI/4);ctx.strokeStyle="rgba(246,246,242,.95)";ctx.shadowColor=sheltered?"rgba(246,246,242,.28)":"rgba(255,255,255,.76)";ctx.shadowBlur=sheltered?3:7;ctx.strokeRect(-2.2,-2.2,4.4,4.4);ctx.restore(); }
+    function drawPlayer(now) { if(isDowned(player)){drawDowned(player,"P1",now);return;} const exposure=clamp((player.exposedUntil-now)/460,0,1), sheltered=isSheltered(player);ctx.save();if(exposure>0){const halo=ctx.createRadialGradient(player.x,player.y,0,player.x,player.y,20);halo.addColorStop(0,`rgba(161,42,48,${exposure*.24})`);halo.addColorStop(1,"rgba(161,42,48,0)");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(player.x,player.y,20,0,Math.PI*2);ctx.fill();ctx.globalAlpha=exposure*.88;ctx.strokeStyle="#d44349";ctx.lineWidth=1;ctx.setLineDash([1,4]);ctx.shadowColor="rgba(161,42,48,.85)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(player.x,player.y,10+exposure*8,-.72,Math.PI*.72);ctx.stroke();ctx.setLineDash([]);}ctx.globalAlpha=.26+exposure*.34;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.75;ctx.beginPath();ctx.arc(player.x,player.y,7.5,.28,Math.PI*1.63);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.34)":"rgba(255,255,255,.95)";ctx.shadowBlur=sheltered?4:9;ctx.beginPath();ctx.arc(player.x,player.y,player.r*.62,0,Math.PI*2);ctx.fill();ctx.restore(); }
+    function drawPlayer2(now) { if(!coOp||!player2)return;if(isDowned(player2)){drawDowned(player2,"P2",now);return;}const exposure=clamp((player2.exposedUntil-now)/260,0,1), sheltered=isSheltered(player2);ctx.save();ctx.translate(player2.x,player2.y);ctx.globalAlpha=.54+exposure*.26;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.9;ctx.setLineDash([2,4]);ctx.beginPath();ctx.arc(0,0,7.3,-.52,Math.PI*1.22);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(4.8,0);ctx.lineTo(8.1,0);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.28)":"rgba(246,246,242,.76)";ctx.shadowBlur=sheltered?3:7;ctx.beginPath();ctx.arc(0,0,1.75,0,Math.PI*2);ctx.fill();ctx.restore(); }
     function drawPartnerHint() { if(!coOp||!player2||partnerHint<=.04)return;const dx=player2.x-player.x,dy=player2.y-player.y,cx=width*.5,cy=height*.5,inset=30,tx=(width*.5-inset)/Math.max(Math.abs(dx),1),ty=(height*.5-inset)/Math.max(Math.abs(dy),1),t=Math.min(tx,ty),x=cx+dx*t,y=cy+dy*t,angle=Math.atan2(dy,dx);ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.globalAlpha=partnerHint*.38;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.85;ctx.setLineDash([2,7]);ctx.beginPath();ctx.arc(0,0,10,.18,Math.PI*1.54);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=COLORS.white;ctx.beginPath();ctx.arc(0,0,1.2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=partnerHint*.28;ctx.beginPath();ctx.moveTo(10,0);ctx.lineTo(15,0);ctx.stroke();ctx.restore(); }
     function drawPrologue(now) {
       const active = state !== "prologue-title";
@@ -760,7 +797,13 @@
     function drawEndingVisual(ending, now) {
       const cx=width*.5, cy=height*.5, phase=now*.001;
       ctx.save();ctx.fillStyle="#000";ctx.fillRect(0,0,width,height);
-      if (ending.id === "ER-00") {
+      if (ending.id === "CR-00") {
+        const spread=Math.min(width,height)*.19;[-1,1].forEach((side,index)=>{ctx.save();ctx.translate(cx+side*spread,cy);ctx.globalAlpha=.45;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.95;ctx.setLineDash([2,10]);ctx.beginPath();ctx.arc(0,0,Math.min(width,height)*.15,index?-.55:.35,index?Math.PI*1.1:Math.PI*1.78);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.78;ctx.fillStyle=COLORS.white;ctx.beginPath();ctx.arc(0,0,2,0,Math.PI*2);ctx.fill();ctx.restore();});ctx.globalAlpha=.46;ctx.strokeStyle="#d44349";ctx.lineWidth=1.15;ctx.shadowColor="rgba(161,42,48,.74)";ctx.shadowBlur=9;ctx.beginPath();ctx.moveTo(cx-22,cy);ctx.lineTo(cx-6,cy-5);ctx.lineTo(cx+7,cy+6);ctx.lineTo(cx+24,cy-2);ctx.stroke();
+      } else if (ending.id === "CR-01") {
+        const r=Math.min(width,height)*.18;ctx.globalAlpha=.48;ctx.strokeStyle=COLORS.white;ctx.lineWidth=1;ctx.setLineDash([2,11]);ctx.beginPath();ctx.arc(cx-r*.32,cy,r,.12,Math.PI*1.53);ctx.stroke();ctx.beginPath();ctx.arc(cx+r*.32,cy,r,Math.PI*1.12,Math.PI*2.53);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.8;ctx.fillStyle=COLORS.white;[cx-r*.32,cx+r*.32].forEach(x=>{ctx.beginPath();ctx.arc(x,cy,1.85,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=.26;ctx.strokeStyle=COLORS.white;ctx.beginPath();ctx.moveTo(cx-r*.12,cy);ctx.lineTo(cx+r*.12,cy);ctx.stroke();
+      } else if (ending.id === "CR-02") {
+        const horizon=height*.48,r=Math.min(width,height)*.22;ctx.globalAlpha=.36;ctx.strokeStyle=COLORS.white;ctx.lineWidth=1;ctx.setLineDash([2,12]);ctx.beginPath();ctx.arc(cx,horizon+r*.17,r,-.68,Math.PI*.93);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.76;ctx.strokeStyle=COLORS.gold;ctx.lineWidth=1.15;ctx.shadowColor="rgba(211,170,88,.78)";ctx.shadowBlur=11;ctx.beginPath();ctx.moveTo(cx-r*.11,horizon+r*.56);ctx.bezierCurveTo(cx-r*.05,horizon+r*.19,cx-r*.03,horizon-r*.10,cx-r*.01,height*.15);ctx.moveTo(cx+r*.11,horizon+r*.56);ctx.bezierCurveTo(cx+r*.05,horizon+r*.19,cx+r*.03,horizon-r*.10,cx+r*.01,height*.15);ctx.stroke();ctx.fillStyle=COLORS.white;[cx-r*.11,cx+r*.11].forEach(x=>{ctx.beginPath();ctx.arc(x,horizon+r*.56,1.8,0,Math.PI*2);ctx.fill();});
+      } else if (ending.id === "ER-00") {
         for(let index=0;index<76;index+=1){const x=cx+Math.sin(index*31.7+phase*.9)*width*(.12+(index%7)*.012), y=height*(.12+(index%13)*.058), length=12+(index%9)*8;ctx.globalAlpha=.05+(index%5)*.018;ctx.strokeStyle=index%11===0?"#a12a30":COLORS.white;ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.sin(phase+index)*2,y+length);ctx.stroke();}
         ctx.globalAlpha=.42;ctx.fillStyle=COLORS.white;ctx.shadowColor="rgba(246,246,242,.48)";ctx.shadowBlur=18;ctx.beginPath();ctx.arc(cx,cy,2.3,0,Math.PI*2);ctx.fill();
       } else if (ending.id === "ER-01") {
@@ -791,7 +834,7 @@
     bassControlEl.addEventListener("input",()=>{audioPrefs.bass=Number(bassControlEl.value)/100;persistAudioPrefs();updateSettingsUi();updateAudioMix();});
     calibrationRunEl.addEventListener("click",runCalibration);
     addEventListener("resize",resize);
-    updateSettingsUi(); resize();if(DEMO){coOp=PREVIEW_COOP;loadChapter(PREVIEW_SILENCE?2:0,true);beginChapter();if(PREVIEW_SILENCE){player.x=shelters[0].x;player.y=shelters[0].y;silencePulseUntil=performance.now()+2200;}if(PREVIEW_THREAT){alert=.88;monsters[0].x=player.x+width*.075;monsters[0].y=player.y-height*.04;huntUntil=performance.now()+99999;}if(PREVIEW_RELAY){records.forEach(record=>{record.collected=true;record.revealUntil=performance.now()+9999;});relays.forEach(relay=>relay.revealUntil=performance.now()+9999);player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}if(PREVIEW_FAR&&player2){player2.x=width*.90;player2.y=height*.82;}if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100};state="won";showStatus("brief",`最终记录 ${PREVIEW_ENDING}`,PREVIEW_ENDING==="ER-00"?"漂流噪声":PREVIEW_ENDING==="ER-01"?"回声仍在":"岸上无声","预览 // 最终记录画面");}if(PREVIEW_SETTINGS)openSettings();}else loadPrologue(true);requestAnimationFrame(frame);
+    updateSettingsUi(); resize();if(DEMO){coOp=PREVIEW_COOP;const previewChapter=PREVIEW_TRIAL?clamp(Number(QUERY.get("trial")||1)-1,0,3):PREVIEW_SILENCE?2:0;loadChapter(previewChapter,true);beginChapter();if(PREVIEW_SILENCE){player.x=shelters[0].x;player.y=shelters[0].y;silencePulseUntil=performance.now()+2200;}if(PREVIEW_THREAT){alert=.88;monsters[0].x=player.x+width*.075;monsters[0].y=player.y-height*.04;huntUntil=performance.now()+99999;}if(PREVIEW_RELAY||PREVIEW_TRIAL){records.forEach(record=>{record.collected=true;record.revealUntil=performance.now()+9999;});relays.forEach(relay=>relay.revealUntil=performance.now()+9999);if(relayTask?.mode==="p1-first"){player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x-width*.06;player2.y=relays[1].y;}else if(relayTask?.mode==="p2-first"){player.x=relays[0].x-width*.06;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}else{player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}}if((PREVIEW_FAR||PREVIEW_DECOY)&&player2){player2.x=width*.90;player2.y=height*.82;}if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100,harmony:8};state="won";const previewTitles={"ER-00":"漂流噪声","ER-01":"回声仍在","ER-02":"岸上无声","CR-00":"失配记录","CR-01":"双声残响","CR-02":"同相离岸"};showStatus("brief","最终记录 " + PREVIEW_ENDING,previewTitles[PREVIEW_ENDING]||"预览记录","预览 // 最终记录画面");}if(PREVIEW_SETTINGS)openSettings();}else loadPrologue(true);requestAnimationFrame(frame);
   })();
   </script>
 </body>
