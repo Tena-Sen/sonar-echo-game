@@ -44,3 +44,4 @@
 | `ModeSelectionLayer` | 在序章前绘制单回路与双信道断环；确认后运行 980ms 的断环收束校验，再分别转入单人苏醒校准或双人职责校准。 |
 | `CoopProgressLayer` | 以 `sonar-coop-progress` 独立记录双人下一待玩章节和完成次数；章节结算后续行，第四章完成后回到第一章，不触碰单人档案与最佳记录。 |
 | `InputMappingLayer` | 以 `sonar-key-bindings` 分别保存单回路与双信道操作键；在设置中捕获新键、自动交换同组冲突，并将移动、脉冲、诱饵及重连/重载路由至当前映射。 |
+| `AbortListeningLayer` | 从监听设置进入冻结确认状态；Enter 清理临时章节状态并返回信道选择，Esc 取消中止，二者均不删除本地进度与偏好。 |
