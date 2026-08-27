@@ -152,7 +152,7 @@
   </style>
 </head>
 <body>
-  <canvas id="game-canvas" aria-label="回声 Sonar 游戏画布"></canvas>
+  <canvas id="game-canvas" tabindex="0" aria-label="回声 Sonar 游戏画布"></canvas>
   <div id="threat-veil" aria-hidden="true"></div>
   <div id="brand" class="hud"><span class="mark-wrap" aria-hidden="true"><svg class="sonar-mark" viewBox="0 0 24 24"><path d="M12 3 A9 9 0 1 0 20.5 8.9"/><circle cx="12" cy="12" r="1.55"/><line x1="19.2" y1="4.8" x2="21.4" y2="2.6"/></svg><img src="/manus-storage/sonar-logo_9e3805c0.png" alt="" onerror="this.style.display='none'" /></span><span class="wordmark">回声 // SONAR<small>ACOUSTIC RECORD // 01</small></span></div>
   <div id="chapter" class="hud"><strong id="chapter-label">章节 I / IV</strong><div id="chapter-pips" aria-hidden="true"><i class="active"></i><i></i><i></i><i></i></div><span id="chapter-name">静水观测</span></div>
@@ -309,7 +309,10 @@
     let badgeStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-chapter-badges") || "{}"); } catch { return {}; } })();
     let cueStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-cue-evidence") || "{}"); } catch { return {}; } })();
     let coopProgress = (() => { try { const stored=JSON.parse(localStorage.getItem("sonar-coop-progress") || "{}"); return { nextChapter:clamp(Number(stored.nextChapter)||0,0,CHAPTERS.length-1), completions:Math.max(0,Number(stored.completions)||0) }; } catch { return { nextChapter:0,completions:0 }; } })();
-    let bindings = (() => { try { const stored=JSON.parse(localStorage.getItem("sonar-key-bindings") || "{}"); return Object.fromEntries(Object.entries(DEFAULT_BINDINGS).map(([scope,defaults])=>[scope,Object.fromEntries(Object.entries(defaults).map(([action,fallback])=>[action,typeof stored?.[scope]?.[action]==="string"&&stored[scope][action]?stored[scope][action]:fallback]))])); } catch { return JSON.parse(JSON.stringify(DEFAULT_BINDINGS)); } })();
+    const RESERVED_BINDING_KEYS = new Set(["escape","enter","1","2","m","f","c"]);
+    function validBindingKey(value) { return typeof value === "string" && value.length > 0 && !RESERVED_BINDING_KEYS.has(value.toLowerCase()); }
+    function normalizeBindings(stored = {}) { return Object.fromEntries(Object.entries(DEFAULT_BINDINGS).map(([scope,defaults])=>{const used=new Set();const normalized={};Object.entries(defaults).forEach(([action,fallback])=>{let candidate=validBindingKey(stored?.[scope]?.[action])?stored[scope][action].toLowerCase():fallback;if(used.has(candidate)){candidate=fallback;if(used.has(candidate))candidate=Object.values(defaults).find(key=>!used.has(key))||fallback;}used.add(candidate);normalized[action]=candidate;});return [scope,normalized];})); }
+    let bindings = (() => { try { return normalizeBindings(JSON.parse(localStorage.getItem("sonar-key-bindings") || "{}")); } catch { return normalizeBindings(); } })();
     let bindingScope = "solo", bindingCapture = null;
     let audioMuted = (() => { try { return localStorage.getItem("sonar-audio-muted") === "1"; } catch { return false; } })();
     let audioPrefs = (() => { try { const saved=JSON.parse(localStorage.getItem("sonar-audio-prefs") || "{}"); return { volume:clamp(Number(saved.volume ?? .70),0,1), bass:clamp(Number(saved.bass ?? .65),0,1) }; } catch { return { volume:.70, bass:.65 }; } })();
@@ -317,6 +320,8 @@
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
+    function focusGameCanvas() { requestAnimationFrame(()=>{ if(state!=="settings"&&state!=="archive"&&state!=="replay") canvas.focus({preventScroll:true}); }); }
+    function clearInputState() { keys=Object.create(null); if(bindingCapture){bindingCapture=null;bindingStatusEl.textContent="输入映射 // 焦点已离开。";renderBindings();} }
     function currentChapter() { return CHAPTERS[chapterIndex]; }
     function pointAt([x, y]) { return { x:x * width, y:y * height }; }
     function screenWalls() { return currentChapter().walls.map(([x,y,w,h]) => ({ x:x * width, y:y * height, w:w * width, h:h * height })); }
@@ -430,7 +435,7 @@
     function captureBinding(event) {
       const key=event.key.toLowerCase();
       if(key==="escape"){bindingCapture=null;bindingStatusEl.textContent="输入映射 // 已取消。";renderBindings();return;}
-      if(["enter","1","2","m","f","c"].includes(key)){bindingStatusEl.textContent="该键保留给系统接入。";return;}
+      if(RESERVED_BINDING_KEYS.has(key)){bindingStatusEl.textContent="该键保留给系统接入。";return;}
       setBinding(bindingCapture.scope,bindingCapture.action,key);
     }
     function saveCoopProgress(nextChapter, completed = false) { if(!coOp||replayMode)return; coopProgress.nextChapter=clamp(nextChapter,0,CHAPTERS.length-1); if(completed)coopProgress.completions+=1; persistCoopProgress(); }
@@ -468,7 +473,7 @@
     function openArchive() {
       const newest = ARCHIVE_ENTRIES.map((entry,index) => entryIntegrity(index) > 0 ? index : -1).filter(index => index >= 0).pop();
       if (newest === undefined || state === "archive") return;
-      archiveReturnState = state; state = "archive"; archiveEntryIndex = newest; archivePage = 0; updateArchivePage();
+      clearInputState(); archiveReturnState = state; state = "archive"; archiveEntryIndex = newest; archivePage = 0; updateArchivePage();
       archiveEl.classList.add("visible"); archiveEl.setAttribute("aria-hidden","false");
     }
     function closeArchive() {
@@ -485,7 +490,7 @@
     }
     function openReplay() {
       if (state === "replay" || !archiveStore["AR-01"]) return;
-      replayReturnState = state; state = "replay"; updateReplayList();
+      clearInputState(); replayReturnState = state; state = "replay"; updateReplayList();
       replayEl.classList.add("visible"); replayEl.setAttribute("aria-hidden","false");
     }
     function closeReplay() {
@@ -494,11 +499,11 @@
     }
     function openSettings() {
       if (state === "settings" || state === "archive" || state === "replay") return;
-      settingsReturnState = state; state = "settings"; updateSettingsUi(); document.body.classList.add("settings-open"); settingsEl.classList.add("visible"); settingsEl.setAttribute("aria-hidden","false");
+      clearInputState(); bindingScope=coOp?"coop":"solo"; settingsReturnState = state; state = "settings"; updateSettingsUi(); document.body.classList.add("settings-open"); settingsEl.classList.add("visible"); settingsEl.setAttribute("aria-hidden","false");
     }
     function closeSettings() {
       if (state !== "settings") return;
-      stopCalibration(); state = settingsReturnState; document.body.classList.remove("settings-open"); settingsEl.classList.remove("visible"); settingsEl.setAttribute("aria-hidden","true");
+      stopCalibration(); state = settingsReturnState; document.body.classList.remove("settings-open"); settingsEl.classList.remove("visible"); settingsEl.setAttribute("aria-hidden","true"); focusGameCanvas();
     }
     function requestAbortSession() {
       if(state!=="settings")return;
@@ -506,11 +511,11 @@
       showStatus("brief","监听中止 // 当前章节冻结","返回信道选择？","ENTER // 确认中止 · ESC // 继续当前记录");
       showLog("中止请求 // 本地档案、按键与双人续行保持。",3600); if(audio){noiseBurst(.10,.008,740,4,0);tone(126,.16,.012,"sine",84,0);}
     }
-    function cancelAbortSession() { if(state!=="abort-confirm")return; state=settingsReturnState; hideStatus(); showLog("中止请求已取消 // 监听继续。",1800); }
+    function cancelAbortSession() { if(state!=="abort-confirm")return; state=settingsReturnState; hideStatus(); showLog("中止请求已取消 // 监听继续。",1800); focusGameCanvas(); }
     function confirmAbortSession() { if(state!=="abort-confirm")return; hideStatus(); loadPrologue(true); showLog("监听已中止 // 返回接入选择。",3000); }
     function startReplay(index) {
       if (index >= unlockedChapterCount()) return;
-      replayIndex = index; replayMode = true; replayEl.classList.remove("visible"); replayEl.setAttribute("aria-hidden","true");
+      replayIndex = index; replayMode = true; coOp=false; selectedMode="solo"; replayEl.classList.remove("visible"); replayEl.setAttribute("aria-hidden","true");
       loadChapter(index,true);
       showStatus("brief", `回放记录 ${String(index + 1).padStart(2,"0")} // 最佳 ${String(Math.round(bestIntegrity(index))).padStart(2,"0")}%`, CHAPTERS[index].title, "回放不推进主线 · ENTER / 左键开始");
       showLog("回放载入 // 仅更高完整度会覆盖原记录。", 4200);
@@ -601,6 +606,7 @@
       hintEl.style.opacity = "0";
       if (audioGraph) refreshMonsterVoices();
       showModeSelection();
+      focusGameCanvas();
     }
     function beginPrologue() {
       if (state !== "prologue-title") return;
@@ -697,6 +703,7 @@
       updateHud();
       showStatus("brief", `章节 ${chapter.id} // ${chapter.mood}`, chapter.title, `${chapter.subtitle}  ENTER / 左键开始`);
       showLog(`系统记录 // ${chapter.subtitle}`, 4200);
+      focusGameCanvas();
     }
     function beginChapter() { if (state !== "brief") return; ensureAudio(); state = "playing"; hideStatus(); hintEl.style.opacity = "1"; clearTimeout(instructionTimer); instructionTimer=setTimeout(()=>{if(state==="playing")hintEl.style.opacity="0";},4200); showLog("目标载入 // 读取全部章节记录。", 2400); }
     function nextChapter() { if (state !== "interchapter") return; if (chapterIndex < CHAPTERS.length - 1) loadChapter(chapterIndex + 1); }
@@ -912,6 +919,9 @@
     function actionInput() { if(state==="prologue-title")enterSelectedMode();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); else if(state==="replay-complete")openReplay(); }
     addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(bindingCapture){event.preventDefault();captureBinding(event);return;}if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="settings"){if(key==="escape")closeSettings();event.preventDefault();return;}if(state==="abort-confirm"){if(key==="enter")confirmAbortSession();else if(key==="escape")cancelAbortSession();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(key==="escape"){openSettings();event.preventDefault();return;}if(state==="prologue-title"){if(key==="arrowleft"||key==="1"){selectMode("solo");event.preventDefault();return;}if(key==="arrowright"||key==="2"){selectMode("coop");event.preventDefault();return;}if(key==="enter"){actionInput();event.preventDefault();return;}return;}const activeScope=coOp?"coop":"solo", boundKeys=Object.values(bindings.solo).concat(Object.values(bindings.coop));if(boundKeys.includes(key)||["arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if((!coOp&&matchesBinding("solo","pulse",key))||(coOp&&matchesBinding("coop","p1Pulse",key))){emitPulse();event.preventDefault();}if(coOp&&matchesBinding("coop","p2Pulse",key)){emitAnalysisPulse();event.preventDefault();}if((!coOp&&matchesBinding("solo","bait",key))||(coOp&&matchesBinding("coop","p1Bait",key))){event.preventDefault();deployBait();}if(matchesBinding(activeScope,"recover",key)){if(attemptRevive()){event.preventDefault();return;}if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
     addEventListener("keyup",event=>{keys[event.key.toLowerCase()]=false;});
+    addEventListener("blur",clearInputState);
+    document.addEventListener("visibilitychange",()=>{if(document.hidden)clearInputState();else focusGameCanvas();});
+    addEventListener("message",event=>{if(event.origin===location.origin&&event.data?.type==="sonar-focus")focusGameCanvas();});
     addEventListener("pointerdown",event=>{if(event.button!==0||state==="archive"||state==="settings"||state==="replay")return;if(state==="prologue-title"){selectMode(event.clientX<width*.5?"solo":"coop");enterSelectedMode();}else if(state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
     archivePrevEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage>0){archivePage-=1;}else{for(let index=archiveEntryIndex-1;index>=0;index-=1){if(entryIntegrity(index)>0){archiveEntryIndex=index;archivePage=2;break;}}}updateArchivePage();});
     archiveNextEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage<2){archivePage+=1;}else{for(let index=archiveEntryIndex+1;index<ARCHIVE_ENTRIES.length;index+=1){if(entryIntegrity(index)>0){archiveEntryIndex=index;archivePage=0;break;}}}updateArchivePage();});
