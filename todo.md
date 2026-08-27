@@ -184,5 +184,5 @@
 # 交接材料 GitHub 同步待办
 
 - [x] 核验交接文档、PowerPoint 项目文件与本地 GitHub 基线。
-- [ ] 提交并推送交接材料至 GitHub。
-- [ ] 核验远程仓库可读取交接文档与 PowerPoint 项目文件。
+- [x] 提交并推送交接材料至 GitHub。
+- [x] 核验远程仓库可读取交接文档与 PowerPoint 项目文件。
