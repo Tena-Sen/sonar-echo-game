@@ -106,8 +106,9 @@
     .replay-item .score { color:rgba(246,246,242,.39); font-size:8px; letter-spacing:.13em; text-align:right; line-height:1.9; }
     .replay-item .badge { color:rgba(211,170,88,.68); }
     #replay-note { margin:20px 0 0; color:rgba(246,246,242,.28); font-size:8px; letter-spacing:.14em; line-height:1.8; }
-    #settings { position:fixed; inset:0; z-index:8; display:grid; place-items:start center; padding:22px; pointer-events:none; opacity:0; transition:opacity .22s ease; background:rgba(0,0,0,.46); }
+    #settings { position:fixed; inset:0; z-index:8; display:grid; place-items:start center; padding:22px; overflow-y:auto; pointer-events:none; opacity:0; transition:opacity .22s ease; background:rgba(0,0,0,.46); }
     #settings.visible { opacity:1; pointer-events:auto; }
+    body.settings-open .hud, body.settings-open #settings-trigger { opacity:0 !important; }
     .settings-panel { position:relative; width:min(82vw,540px); margin-top:max(10vh,72px); transform:translateX(-8vw); padding:clamp(28px,5vw,52px) clamp(36px,6vw,78px); color:rgba(246,246,242,.84); }
     .settings-panel::before { content:""; position:absolute; top:17px; left:18px; width:58px; height:58px; border:1px solid rgba(246,246,242,.28); border-right-color:transparent; border-bottom-color:transparent; border-radius:50%; transform:rotate(-34deg); }
     .settings-panel::after { content:""; position:absolute; top:44px; left:46px; width:3px; height:3px; border-radius:50%; background:rgba(246,246,242,.84); }
@@ -123,6 +124,18 @@
     #calibration-run:hover { border-color:rgba(246,246,242,.58); color:rgba(246,246,242,.98); }
     #calibration-status { margin:11px 0 0; min-height:15px; color:rgba(246,246,242,.28); font-size:8px; letter-spacing:.14em; }
     .settings-foot { margin:24px 0 0; color:rgba(246,246,242,.28); font-size:8px; letter-spacing:.14em; line-height:1.8; }
+    .settings-divider { margin:30px 0 0; padding-top:15px; border-top:1px solid rgba(246,246,242,.10); color:rgba(246,246,242,.38); font-size:8px; letter-spacing:.18em; }
+    .binding-tabs { display:flex; gap:18px; margin:13px 0 3px; }
+    .binding-tabs button, .binding-reset, .coop-progress-reset { border:0; padding:0; background:transparent; color:rgba(246,246,242,.34); font:inherit; font-size:8px; letter-spacing:.14em; cursor:pointer; transition:color .16s ease; }
+    .binding-tabs button.active { color:rgba(246,246,242,.88); }
+    .binding-tabs button:hover, .binding-reset:hover, .coop-progress-reset:hover { color:rgba(211,170,88,.88); }
+    #binding-list { margin-top:9px; border-top:1px solid rgba(246,246,242,.08); }
+    .binding-row { display:grid; grid-template-columns:1fr auto; align-items:center; gap:16px; padding:9px 0; border-bottom:1px solid rgba(246,246,242,.07); color:rgba(246,246,242,.46); font-size:8px; letter-spacing:.14em; }
+    .binding-row button { min-width:82px; border:1px solid rgba(246,246,242,.15); padding:5px 8px; background:transparent; color:rgba(246,246,242,.75); font:inherit; font-size:8px; letter-spacing:.13em; cursor:pointer; transition:border-color .16s ease,color .16s ease; }
+    .binding-row button:hover, .binding-row button.capturing { border-color:rgba(211,170,88,.72); color:rgba(211,170,88,.92); }
+    .binding-reset { margin-top:14px; }
+    #binding-status, #coop-progress { margin:10px 0 0; min-height:15px; color:rgba(246,246,242,.28); font-size:8px; letter-spacing:.13em; line-height:1.8; }
+    .coop-progress-line { display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin-top:14px; }
     @media (max-width: 560px) {
       #brand { top: 11px; left: 14px; } #brand .wordmark { display: none; }
       #chapter { top: 70px; left: 14px; } #usage { top: 14px; right: 14px; }
@@ -131,7 +144,7 @@
       #hint { left: 14px; bottom: 13px; max-width: 160px; font-size: 8px; }
       #coop-channel { left:14px; bottom:102px; max-width:156px; }
       #settings-trigger { top:134px; right:14px; }
-      .settings-panel { margin-top:10vh; transform:none; }
+      .settings-panel { margin-top:10vh; margin-bottom:24px; transform:none; }
     }
     @media (prefers-reduced-motion: reduce) { #status, #hint, #log-line { transition: none; } }
   </style>
@@ -152,7 +165,7 @@
   <div id="signal-glitch" aria-hidden="true"></div>
   <section id="archive" aria-label="设备档案" aria-hidden="true"><div class="archive-panel"><button id="archive-replay" type="button">章节回放 // C</button><button id="archive-close" type="button">关闭 // X</button><p id="archive-kicker" class="archive-kicker">设备档案 // AR-01</p><h2 id="archive-title">失落信号</h2><p id="archive-meta" class="archive-meta">监听站 17 · 回收介质</p><p id="archive-evidence"></p><div id="archive-body"></div><div class="archive-nav"><button id="archive-prev" type="button">← 上一页</button><span id="archive-page">AR-01 · 01 / 03</span><button id="archive-next" type="button">下一页 →</button></div></div></section>
   <section id="replay" aria-label="章节回放" aria-hidden="true"><div class="replay-panel"><button id="replay-close" type="button">关闭 // X</button><p class="replay-kicker">章节回放 // 已恢复记录</p><h2>回收记录</h2><p class="replay-meta">恢复信号 // 仅更高完整度写入原始介质。</p><div id="replay-list"></div><p id="replay-note">未恢复记录 // 不可读取。</p></div></section>
-  <section id="settings" aria-label="监听设置" aria-hidden="true"><div class="settings-panel"><button id="settings-close" type="button">关闭 // X</button><p class="settings-kicker">监听记录 // 本地参数</p><h2>监听校准</h2><p class="settings-meta">输出总线 // 即时校准 · 本地保留</p><label class="setting-row"><span>主输出 // 01</span><strong id="volume-value">70%</strong><input id="volume-control" type="range" min="0" max="100" step="1" value="70" /></label><label class="setting-row"><span>低频载荷 // 02</span><strong id="bass-value">65%</strong><input id="bass-control" type="range" min="0" max="100" step="1" value="65" /></label><button id="calibration-run" type="button">运行耳机校准 // 左 · 右 · 低频</button><p id="calibration-status">校准状态 // 等待执行</p><p class="settings-foot">Esc // 关闭 · M // 静音<br>立体声通道 // 建议保留</p></div></section>
+  <section id="settings" aria-label="监听设置" aria-hidden="true"><div class="settings-panel"><button id="settings-close" type="button">关闭 // X</button><p class="settings-kicker">监听记录 // 本地参数</p><h2>监听校准</h2><p class="settings-meta">输出总线 // 即时校准 · 本地保留</p><label class="setting-row"><span>主输出 // 01</span><strong id="volume-value">70%</strong><input id="volume-control" type="range" min="0" max="100" step="1" value="70" /></label><label class="setting-row"><span>低频载荷 // 02</span><strong id="bass-value">65%</strong><input id="bass-control" type="range" min="0" max="100" step="1" value="65" /></label><button id="calibration-run" type="button">运行耳机校准 // 左 · 右 · 低频</button><p id="calibration-status">校准状态 // 等待执行</p><p class="settings-divider">输入映射 // 本地保留</p><div id="binding-tabs" class="binding-tabs" aria-label="按键映射模式"><button type="button" data-binding-scope="solo" class="active">单回路 // 01</button><button type="button" data-binding-scope="coop">双信道 // 02</button></div><div id="binding-list"></div><button id="binding-reset" class="binding-reset" type="button">恢复当前回路默认按键</button><p id="binding-status">选择动作 // 按下新键</p><p class="settings-divider">双信道续行 // 本地记录</p><div class="coop-progress-line"><p id="coop-progress">待玩章节 // I · 完成 00</p><button id="coop-progress-reset" class="coop-progress-reset" type="button">清除续行</button></div><p class="settings-foot">Esc // 关闭 · M // 静音<br>系统键、档案与监听设置不参与重映射</p></div></section>
 
   <script>
   (() => {
@@ -206,9 +219,23 @@
     const bassValueEl = document.getElementById("bass-value");
     const calibrationRunEl = document.getElementById("calibration-run");
     const calibrationStatusEl = document.getElementById("calibration-status");
+    const bindingTabsEl = document.getElementById("binding-tabs");
+    const bindingListEl = document.getElementById("binding-list");
+    const bindingResetEl = document.getElementById("binding-reset");
+    const bindingStatusEl = document.getElementById("binding-status");
+    const coopProgressEl = document.getElementById("coop-progress");
+    const coopProgressResetEl = document.getElementById("coop-progress-reset");
 
     const COLORS = { white: "#f6f6f2", red: "#a12a30", gold: "#d3aa58" };
     const LOW_PULSE_LIMITS = [8,9,10,11];
+    const DEFAULT_BINDINGS = {
+      solo:{ up:"w", down:"s", left:"a", right:"d", pulse:"e", bait:" ", recover:"r" },
+      coop:{ p1Up:"w", p1Down:"s", p1Left:"a", p1Right:"d", p1Pulse:"e", p1Bait:" ", p2Up:"arrowup", p2Down:"arrowdown", p2Left:"arrowleft", p2Right:"arrowright", p2Pulse:"/", recover:"r" }
+    };
+    const BINDING_LABELS = {
+      solo:{ up:"上行", down:"下行", left:"左移", right:"右移", pulse:"主声呐", bait:"外置诱饵", recover:"重载记录" },
+      coop:{ p1Up:"P1 上行", p1Down:"P1 下行", p1Left:"P1 左移", p1Right:"P1 右移", p1Pulse:"P1 主声呐", p1Bait:"P1 诱饵", p2Up:"P2 上行", p2Down:"P2 下行", p2Left:"P2 左移", p2Right:"P2 右移", p2Pulse:"P2 解析", recover:"重连 / 重载" }
+    };
     const MONSTER_SIGNATURES = {
       patrol:{ label:"折返体", base:46, filter:185, q:1.35, lfo:1.1, depth:4.5, wave:"sawtooth", gain:1.0 },
       confirm:{ label:"确认体", base:68, filter:430, q:3.5, lfo:3.2, depth:12, wave:"triangle", gain:.84 },
@@ -265,16 +292,21 @@
     const PREVIEW_TRIAL = QUERY.has("trial");
     const PREVIEW_DECOY = QUERY.has("decoy");
     const PREVIEW_MODE = QUERY.get("mode");
+    const PREVIEW_LINK = QUERY.get("link");
+    const PREVIEW_REMAP = QUERY.has("remap");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
     let chapterIndex = 0, state = "prologue-title", player, player2, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue, ambientCue, audioGraph;
     let sonarCount = 0, runDeaths = 0, charge = 3, nextChargeAt = 0, alert = 0, lastEchoAt = 0, logUntil = 0, huntUntil = 0, lastHuntTargetAt = 0, lastDemoAt = 0;
     let activeChapter = -1, chapterFailures = 0, chapterStartSonar = 0, chapterIntegrity = 100;
     let archiveStore = (() => { try { const legacy = localStorage.getItem("sonar-ar01") === "1"; const stored = JSON.parse(localStorage.getItem("sonar-archives") || "{}"); if (legacy && !stored["AR-01"]) stored["AR-01"] = 100; return stored; } catch { return {}; } })();
-    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", settingsReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null, threatLevel = 0, shelterLatched = false, silencePulseUntil = 0, calibrationTimer = 0, coOp = false, selectedMode = "solo", analysisCharge = 2, analysisNextAt = 0, relays = [], relayTask = null, coopDowns = 0, coopAlertPeak = 0, partnerHint = 0, lastPartnerCueAt = 0, instructionTimer = 0, falseCue = null;
+    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", settingsReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null, threatLevel = 0, shelterLatched = false, silencePulseUntil = 0, calibrationTimer = 0, coOp = false, selectedMode = "solo", modeLink = null, analysisCharge = 2, analysisNextAt = 0, relays = [], relayTask = null, coopDowns = 0, coopAlertPeak = 0, partnerHint = 0, lastPartnerCueAt = 0, instructionTimer = 0, falseCue = null;
     let bestStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-best-integrity") || "{}"); } catch { return {}; } })();
     let badgeStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-chapter-badges") || "{}"); } catch { return {}; } })();
     let cueStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-cue-evidence") || "{}"); } catch { return {}; } })();
+    let coopProgress = (() => { try { const stored=JSON.parse(localStorage.getItem("sonar-coop-progress") || "{}"); return { nextChapter:clamp(Number(stored.nextChapter)||0,0,CHAPTERS.length-1), completions:Math.max(0,Number(stored.completions)||0) }; } catch { return { nextChapter:0,completions:0 }; } })();
+    let bindings = (() => { try { const stored=JSON.parse(localStorage.getItem("sonar-key-bindings") || "{}"); return Object.fromEntries(Object.entries(DEFAULT_BINDINGS).map(([scope,defaults])=>[scope,Object.fromEntries(Object.entries(defaults).map(([action,fallback])=>[action,typeof stored?.[scope]?.[action]==="string"&&stored[scope][action]?stored[scope][action]:fallback]))])); } catch { return JSON.parse(JSON.stringify(DEFAULT_BINDINGS)); } })();
+    let bindingScope = "solo", bindingCapture = null;
     let audioMuted = (() => { try { return localStorage.getItem("sonar-audio-muted") === "1"; } catch { return false; } })();
     let audioPrefs = (() => { try { const saved=JSON.parse(localStorage.getItem("sonar-audio-prefs") || "{}"); return { volume:clamp(Number(saved.volume ?? .70),0,1), bass:clamp(Number(saved.bass ?? .65),0,1) }; } catch { return { volume:.70, bass:.65 }; } })();
     const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -348,7 +380,7 @@
     }
     function toggleMute() { audioMuted=!audioMuted; try{localStorage.setItem("sonar-audio-muted",audioMuted?"1":"0");}catch{} if(audioGraph) updateAudioMix(); showLog(audioMuted?"监听输出 // 静音。":"监听输出 // 已恢复。",1800); }
     function persistAudioPrefs() { try{localStorage.setItem("sonar-audio-prefs",JSON.stringify(audioPrefs));}catch{} }
-    function updateSettingsUi() { volumeControlEl.value=String(Math.round(audioPrefs.volume*100)); bassControlEl.value=String(Math.round(audioPrefs.bass*100)); volumeValueEl.textContent=`${Math.round(audioPrefs.volume*100)}%`; bassValueEl.textContent=`${Math.round(audioPrefs.bass*100)}%`; }
+    function updateSettingsUi() { volumeControlEl.value=String(Math.round(audioPrefs.volume*100)); bassControlEl.value=String(Math.round(audioPrefs.bass*100)); volumeValueEl.textContent=`${Math.round(audioPrefs.volume*100)}%`; bassValueEl.textContent=`${Math.round(audioPrefs.bass*100)}%`; coopProgressEl.textContent=`待玩章节 // ${CHAPTERS[coopProgress.nextChapter].id} · 完成 ${String(coopProgress.completions).padStart(2,"0")}`; renderBindings(); }
     function stopCalibration() { clearTimeout(calibrationTimer); calibrationTimer=0; if(state!=="settings") calibrationStatusEl.textContent="校准状态 // 已停止"; }
     function runCalibration() {
       ensureAudio(); stopCalibration(); const steps=[
@@ -377,6 +409,28 @@
     function persistBest() { try { localStorage.setItem("sonar-best-integrity",JSON.stringify(bestStore)); } catch {} }
     function persistBadges() { try { localStorage.setItem("sonar-chapter-badges",JSON.stringify(badgeStore)); } catch {} }
     function persistCues() { try { localStorage.setItem("sonar-cue-evidence",JSON.stringify(cueStore)); } catch {} }
+    function persistCoopProgress() { try { localStorage.setItem("sonar-coop-progress",JSON.stringify(coopProgress)); } catch {} }
+    function persistBindings() { try { localStorage.setItem("sonar-key-bindings",JSON.stringify(bindings)); } catch {} }
+    function bindingName(key) { return ({" ":"SPACE",arrowup:"↑",arrowdown:"↓",arrowleft:"←",arrowright:"→",escape:"ESC",enter:"ENTER"})[key] || key.toUpperCase(); }
+    function matchesBinding(scope, action, key) { return bindings[scope]?.[action] === key; }
+    function renderBindings() {
+      bindingTabsEl.querySelectorAll("[data-binding-scope]").forEach(button=>button.classList.toggle("active",button.dataset.bindingScope===bindingScope));
+      bindingListEl.innerHTML=Object.entries(BINDING_LABELS[bindingScope]).map(([action,label])=>`<div class="binding-row"><span>${label}</span><button type="button" data-binding-action="${action}" class="${bindingCapture?.scope===bindingScope&&bindingCapture?.action===action?"capturing":""}">${bindingCapture?.scope===bindingScope&&bindingCapture?.action===action?"输入中…":bindingName(bindings[bindingScope][action])}</button></div>`).join("");
+    }
+    function setBinding(scope, action, key) {
+      const old=bindings[scope][action], conflict=Object.keys(bindings[scope]).find(candidate=>candidate!==action&&bindings[scope][candidate]===key);
+      if(conflict) bindings[scope][conflict]=old;
+      bindings[scope][action]=key; persistBindings(); bindingCapture=null; bindingStatusEl.textContent=conflict?`映射已交换 // ${bindingName(key)}。`:`映射已写入 // ${bindingName(key)}。`; renderBindings();
+    }
+    function resetBindings(scope) { bindings[scope]={...DEFAULT_BINDINGS[scope]}; persistBindings(); bindingCapture=null; bindingStatusEl.textContent=`${scope==="coop"?"双信道":"单回路"}默认映射已恢复。`; renderBindings(); }
+    function captureBinding(event) {
+      const key=event.key.toLowerCase();
+      if(key==="escape"){bindingCapture=null;bindingStatusEl.textContent="输入映射 // 已取消。";renderBindings();return;}
+      if(["enter","1","2","m","f","c"].includes(key)){bindingStatusEl.textContent="该键保留给系统接入。";return;}
+      setBinding(bindingCapture.scope,bindingCapture.action,key);
+    }
+    function saveCoopProgress(nextChapter, completed = false) { if(!coOp||replayMode)return; coopProgress.nextChapter=clamp(nextChapter,0,CHAPTERS.length-1); if(completed)coopProgress.completions+=1; persistCoopProgress(); }
+    function resetCoopProgress() { coopProgress={nextChapter:0,completions:0}; persistCoopProgress(); }
     function entryIntegrity(index) { return archiveStore[ARCHIVE_ENTRIES[index].id] || 0; }
     function bestIntegrity(index) { return bestStore[index] || 0; }
     function badgesFor(index) { return badgeStore[index] || {}; }
@@ -436,11 +490,11 @@
     }
     function openSettings() {
       if (state === "settings" || state === "archive" || state === "replay") return;
-      settingsReturnState = state; state = "settings"; updateSettingsUi(); settingsEl.classList.add("visible"); settingsEl.setAttribute("aria-hidden","false");
+      settingsReturnState = state; state = "settings"; updateSettingsUi(); document.body.classList.add("settings-open"); settingsEl.classList.add("visible"); settingsEl.setAttribute("aria-hidden","false");
     }
     function closeSettings() {
       if (state !== "settings") return;
-      stopCalibration(); state = settingsReturnState; settingsEl.classList.remove("visible"); settingsEl.setAttribute("aria-hidden","true");
+      stopCalibration(); state = settingsReturnState; document.body.classList.remove("settings-open"); settingsEl.classList.remove("visible"); settingsEl.setAttribute("aria-hidden","true");
     }
     function startReplay(index) {
       if (index >= unlockedChapterCount()) return;
@@ -499,19 +553,29 @@
     function showModeSelection() {
       const coopSelected = selectedMode === "coop";
       statusEl.dataset.mode="select";
-      showStatus("brief", "接入选择 // 阵列 01 / 02", coopSelected ? "双信道协议" : "单人监听", coopSelected ? "通道 02 // P1/P2 校验待命\n← / → 切换 · ENTER 接通 · 点击右侧信道" : "通道 01 // 独立监听待命\n← / → 切换 · ENTER 接通 · 点击左侧信道");
+      const coopResume=coopProgress.nextChapter>0?` · 续行 ${CHAPTERS[coopProgress.nextChapter].id}`:" · 初始记录";
+      showStatus("brief", "接入选择 // 阵列 01 / 02", coopSelected ? "双信道协议" : "单人监听", coopSelected ? `通道 02 // P1/P2 校验待命${coopResume}\n← / → 切换 · ENTER 接通 · 点击右侧信道` : "通道 01 // 独立监听待命\n← / → 切换 · ENTER 接通 · 点击左侧信道");
       showLog(coopSelected ? "双信道待接通 // 需要两名监听者。" : "单人监听待接通 // 仅一条回声。", 4200);
     }
     function selectMode(mode) {
+      if(modeLink)return;
       selectedMode = mode === "coop" ? "coop" : "solo";
       if (state === "prologue-title") showModeSelection();
     }
-    function enterSelectedMode() { if (selectedMode === "coop") startCoOp(); else beginPrologue(); }
+    function startModeLink() {
+      if(modeLink)return;
+      const isCoop=selectedMode==="coop";
+      modeLink={mode:selectedMode,startedAt:performance.now(),until:performance.now()+980};
+      statusEl.dataset.mode="link";
+      showStatus("brief",isCoop?"双信道校验 // 阵列收束":"单回路校验 // 源点收束",isCoop?"正在接通双信道":"正在接通监听",isCoop?"P1 / P2 同步锁定 · 请勿断开。":"源点锁定 · 请勿发声。 ");
+      ensureAudio(); noiseBurst(.12,.010,980,4,0); tone(isCoop?128:96,.30,.018,"sine",isCoop?244:184,0);
+    }
+    function enterSelectedMode() { startModeLink(); }
     function loadPrologue(resetRun = true) {
       chapterIndex = 0;
       shelterLatched = false; silencePulseUntil = 0;
       player = { x:width * .50, y:height * .73, r:5.5, exposedUntil:0 };
-      player2 = null; coOp = false; selectedMode = "solo";
+      player2 = null; coOp = false; selectedMode = "solo"; modeLink = null;
       exit = { x:-100, y:-100, r:0, revealUntil:0, unlocked:false };
       monsters = []; records = []; shelters = []; pulses = []; traces = []; reveal = []; keys = Object.create(null); bait = null;
       prologue = { anchor:{ x:width * .50, y:height * .32, r:10 }, phase:"title", wakeUntil:0, anomalyUntil:0, transitionAt:0, briefAt:0, signalLine:SIGNAL_RECORDS[Math.floor(Math.random() * SIGNAL_RECORDS.length)] };
@@ -544,7 +608,7 @@
       showLog("空间为空。先移动，不要发声。", 3400);
     }
     function movePrologue(delta) {
-      const dx = (keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0), dy = (keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+      const b=bindings.solo, dx = (keys[b.right]||keys.arrowright?1:0)-(keys[b.left]||keys.arrowleft?1:0), dy = (keys[b.down]||keys.arrowdown?1:0)-(keys[b.up]||keys.arrowup?1:0);
       if (!dx && !dy) return;
       const length = Math.hypot(dx,dy), speed = Math.min(width,height) * .245;
       player.x = clamp(player.x + dx / length * speed * delta, width*.08, width*.92);
@@ -617,7 +681,7 @@
       if (activeChapter !== chapterIndex || resetRun) { chapterFailures = 0; chapterStartSonar = sonarCount; chapterIntegrity = 100; activeChapter = chapterIndex; }
       state = "brief";
       setGameplayHud(true);
-      hintEl.innerHTML = coOp ? `P1 // WASD · E 主声呐<br>P2 // 方向键 · / 解析脉冲<br>R // 邻近重连 · 两人共同撤离` : `输入 // LMB 声呐 · WASD 位移<br>SPACE // 外置回声（授权后）${Object.keys(archiveStore).length ? "<br>F // 设备档案" : ""}<br>M // 静音`;
+      hintEl.innerHTML = coOp ? `P1 // ${bindingName(bindings.coop.p1Up)}${bindingName(bindings.coop.p1Left)}${bindingName(bindings.coop.p1Down)}${bindingName(bindings.coop.p1Right)} · ${bindingName(bindings.coop.p1Pulse)} 主声呐<br>P2 // ${bindingName(bindings.coop.p2Up)}${bindingName(bindings.coop.p2Left)}${bindingName(bindings.coop.p2Down)}${bindingName(bindings.coop.p2Right)} · ${bindingName(bindings.coop.p2Pulse)} 解析<br>${bindingName(bindings.coop.recover)} // 邻近重连 · 两人共同撤离` : `输入 // LMB / ${bindingName(bindings.solo.pulse)} 声呐 · ${bindingName(bindings.solo.up)}${bindingName(bindings.solo.left)}${bindingName(bindings.solo.down)}${bindingName(bindings.solo.right)} 位移<br>${bindingName(bindings.solo.bait)} // 外置回声（授权后）${Object.keys(archiveStore).length ? "<br>F // 设备档案" : ""}<br>M // 静音`;
       updateHud();
       showStatus("brief", `章节 ${chapter.id} // ${chapter.mood}`, chapter.title, `${chapter.subtitle}  ENTER / 左键开始`);
       showLog(`系统记录 // ${chapter.subtitle}`, 4200);
@@ -625,7 +689,7 @@
     function beginChapter() { if (state !== "brief") return; ensureAudio(); state = "playing"; hideStatus(); hintEl.style.opacity = "1"; clearTimeout(instructionTimer); instructionTimer=setTimeout(()=>{if(state==="playing")hintEl.style.opacity="0";},4200); showLog("目标载入 // 读取全部章节记录。", 2400); }
     function nextChapter() { if (state !== "interchapter") return; if (chapterIndex < CHAPTERS.length - 1) loadChapter(chapterIndex + 1); }
     function startNewRun() { loadPrologue(true); }
-    function startCoOp() { delete statusEl.dataset.mode; selectedMode="coop"; coOp=true; replayMode=false; loadChapter(0,true); showStatus("brief","双信道校准 // 本地协作","静水观测","探路回路 / P1 · 解码回路 / P2 · ENTER / 左键开始"); showLog("双信道接通 // 仅解析脉冲可恢复记录。",4200); }
+    function startCoOp() { delete statusEl.dataset.mode; selectedMode="coop"; coOp=true; replayMode=false; const resume=coopProgress.nextChapter, chapter=CHAPTERS[resume]; loadChapter(resume,true); showStatus("brief","双信道校准 // 本地协作",chapter.title,`P1 ${bindingName(bindings.coop.p1Pulse)} 探路 · P2 ${bindingName(bindings.coop.p2Pulse)} 解码 · ${resume?`续行章节 ${chapter.id}`:"初始章节"} · ENTER / 左键开始`); showLog(resume?`双信道续行 // 已恢复章节 ${chapter.id}。`:"双信道接通 // 仅解析脉冲可恢复记录。",4200); }
 
     function resize() {
       const oldWidth = width || innerWidth, oldHeight = height || innerHeight;
@@ -697,11 +761,11 @@
       if (result === "lost") { state = "lost"; runDeaths += 1; chapterFailures += 1; chapterIntegrity = calculateIntegrity(); failSound(); showStatus("danger", `章节 ${currentChapter().id} // 信号中断`, "你被吞噬了", `R // 重载本章记录。当前完整度 ${String(Math.round(chapterIntegrity)).padStart(2,"0")}%` ); return; }
       const resultRecord = finalizeChapterRecord(), integrity = resultRecord.integrity, coopMarks=coOp?[resultRecord.badges.coopNoDown?"无断线":"",resultRecord.badges.coopLowAlert?"低警觉":""].filter(Boolean).join(" · "):"";
       if (replayMode) { state = "replay-complete"; const message = resultRecord.best.improved ? "记录已修复 // 历史完整度上升。" : "记录未改善 // 原始数据保留。"; const ending = chapterIndex === CHAPTERS.length - 1 ? (coOp?cooperativeEndingRecord():endingRecord()) : null; if (ending) finalEnding = ending; showStatus("brief", ending ? `最终记录 ${ending.id} // ${coOp?`默契 ${ending.harmony}/08`:String(Math.round(ending.average)).padStart(2,"0")+"%"}` : `回放 ${String(replayIndex + 1).padStart(2,"0")} // ${String(Math.round(integrity)).padStart(2,"0")}%`, ending ? ending.title : resultRecord.best.improved ? "记录已修复" : "记录已保留", `${ending ? ending.copy : message} C 返回回放 · R 新一轮`); return; }
-      if (chapterIndex === CHAPTERS.length - 1) { state = "won"; const ending = coOp?cooperativeEndingRecord():endingRecord(); finalEnding = ending; showStatus("brief", `最终记录 ${ending.id} // ${coOp?`默契 ${ending.harmony}/08`:"信号 "+String(Math.round(ending.average)).padStart(2,"0")+"%"}`, ending.title, `${ending.copy} F 查看档案 · C 回放记录 · R 重新进入`); return; }
-      state = "interchapter"; showStatus("brief", `章节 ${currentChapter().id} // 记录恢复`, "门已开启", `完整度 ${String(Math.round(integrity)).padStart(2,"0")}%${coopMarks?` · 协作勋记 ${coopMarks}`:""} · 档案 AR-0${chapterIndex + 2} 已恢复 · ENTER / 左键继续`);
+      if (chapterIndex === CHAPTERS.length - 1) { if(coOp)saveCoopProgress(0,true); state = "won"; const ending = coOp?cooperativeEndingRecord():endingRecord(); finalEnding = ending; showStatus("brief", `最终记录 ${ending.id} // ${coOp?`默契 ${ending.harmony}/08`:"信号 "+String(Math.round(ending.average)).padStart(2,"0")+"%"}`, ending.title, `${ending.copy} F 查看档案 · C 回放记录 · R 重新进入`); return; }
+      if(coOp)saveCoopProgress(chapterIndex+1); state = "interchapter"; showStatus("brief", `章节 ${currentChapter().id} // 记录恢复`, "门已开启", `完整度 ${String(Math.round(integrity)).padStart(2,"0")}%${coopMarks?` · 协作勋记 ${coopMarks}`:""} · 档案 AR-0${chapterIndex + 2} 已恢复 · ENTER / 左键继续`);
     }
-    function updatePlayer(delta) { if(isDowned(player))return; const dx = (keys.d||(!coOp&&keys.arrowright)?1:0)-(keys.a||(!coOp&&keys.arrowleft)?1:0), dy = (keys.s||(!coOp&&keys.arrowdown)?1:0)-(keys.w||(!coOp&&keys.arrowup)?1:0); if (!dx&&!dy) return; const length = Math.hypot(dx,dy), speed = Math.min(width,height) * .244; move(player,dx/length*speed*delta,dy/length*speed*delta); }
-    function updatePlayer2(delta) { if(!coOp||!player2||isDowned(player2))return; const dx=(keys.arrowright?1:0)-(keys.arrowleft?1:0),dy=(keys.arrowdown?1:0)-(keys.arrowup?1:0);if(!dx&&!dy)return;const length=Math.hypot(dx,dy),speed=Math.min(width,height)*.232;move(player2,dx/length*speed*delta,dy/length*speed*delta); }
+    function updatePlayer(delta) { if(isDowned(player))return; const b=coOp?bindings.coop:bindings.solo, dx = (keys[coOp?b.p1Right:b.right]||(!coOp&&keys.arrowright)?1:0)-(keys[coOp?b.p1Left:b.left]||(!coOp&&keys.arrowleft)?1:0), dy = (keys[coOp?b.p1Down:b.down]||(!coOp&&keys.arrowdown)?1:0)-(keys[coOp?b.p1Up:b.up]||(!coOp&&keys.arrowup)?1:0); if (!dx&&!dy) return; const length = Math.hypot(dx,dy), speed = Math.min(width,height) * .244; move(player,dx/length*speed*delta,dy/length*speed*delta); }
+    function updatePlayer2(delta) { if(!coOp||!player2||isDowned(player2))return; const b=bindings.coop, dx=(keys[b.p2Right]?1:0)-(keys[b.p2Left]?1:0),dy=(keys[b.p2Down]?1:0)-(keys[b.p2Up]?1:0);if(!dx&&!dy)return;const length=Math.hypot(dx,dy),speed=Math.min(width,height)*.232;move(player2,dx/length*speed*delta,dy/length*speed*delta); }
     function updateMonster(monster, delta, now) {
       const sheltered = teamSheltered();
       if (sheltered && monster.mode !== "patrol") { monster.target = null; monster.mode = "patrol"; }
@@ -759,6 +823,7 @@
     function update(delta, now) {
       updateAudioMix(now);
       updateThreatFeedback(now);
+      if(modeLink) { if(now>=modeLink.until){const mode=modeLink.mode;modeLink=null;if(mode==="coop")startCoOp();else beginPrologue();} return; }
       if (state.startsWith("prologue")) { updatePrologue(delta,now); return; }
       if (state !== "playing") return;
       alert = Math.max(0,alert - delta*.043);
@@ -790,8 +855,8 @@
     function drawBait(now) { if(!bait)return;ctx.save();ctx.globalAlpha=bait.ready?.64:.22;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.85;ctx.setLineDash([2,5]);ctx.beginPath();ctx.arc(bait.x,bait.y,bait.ready?8:4,0,Math.PI*2);ctx.stroke();ctx.restore(); }
     function drawSilenceReset(now) { if(silencePulseUntil<=now||reduceMotion)return;const p=clamp((silencePulseUntil-now)/620,0,1),r=(1-p)*Math.min(width,height)*.15+8;ctx.save();ctx.globalAlpha=Math.sin(p*Math.PI)*.42;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.8;ctx.setLineDash([2,9]);ctx.shadowColor="rgba(246,246,242,.65)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(player.x,player.y,r,0,Math.PI*2);ctx.stroke();ctx.restore(); }
     function drawDowned(entity,label,now) { const alpha=clamp((entity.downedUntil-now)/6800,0,1);ctx.save();ctx.translate(entity.x,entity.y);ctx.globalAlpha=.72+alpha*.18;ctx.strokeStyle="#d44349";ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.shadowColor="rgba(161,42,48,.84)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font="8px ui-monospace";ctx.fillStyle="#d44349";ctx.fillText(label,-6,-13);ctx.restore(); }
-    function drawPlayer(now) { if(isDowned(player)){drawDowned(player,"P1",now);return;} const exposure=clamp((player.exposedUntil-now)/460,0,1), sheltered=isSheltered(player);ctx.save();if(exposure>0){const halo=ctx.createRadialGradient(player.x,player.y,0,player.x,player.y,20);halo.addColorStop(0,`rgba(161,42,48,${exposure*.24})`);halo.addColorStop(1,"rgba(161,42,48,0)");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(player.x,player.y,20,0,Math.PI*2);ctx.fill();ctx.globalAlpha=exposure*.88;ctx.strokeStyle="#d44349";ctx.lineWidth=1;ctx.setLineDash([1,4]);ctx.shadowColor="rgba(161,42,48,.85)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(player.x,player.y,10+exposure*8,-.72,Math.PI*.72);ctx.stroke();ctx.setLineDash([]);}ctx.globalAlpha=.26+exposure*.34;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.75;ctx.beginPath();ctx.arc(player.x,player.y,7.5,.28,Math.PI*1.63);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.34)":"rgba(255,255,255,.95)";ctx.shadowBlur=sheltered?4:9;ctx.beginPath();ctx.arc(player.x,player.y,player.r*.62,0,Math.PI*2);ctx.fill();ctx.restore(); }
-    function drawPlayer2(now) { if(!coOp||!player2)return;if(isDowned(player2)){drawDowned(player2,"P2",now);return;}const exposure=clamp((player2.exposedUntil-now)/260,0,1), sheltered=isSheltered(player2);ctx.save();ctx.translate(player2.x,player2.y);ctx.globalAlpha=.54+exposure*.26;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.9;ctx.setLineDash([2,4]);ctx.beginPath();ctx.arc(0,0,7.3,-.52,Math.PI*1.22);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(4.8,0);ctx.lineTo(8.1,0);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.28)":"rgba(246,246,242,.76)";ctx.shadowBlur=sheltered?3:7;ctx.beginPath();ctx.arc(0,0,1.75,0,Math.PI*2);ctx.fill();ctx.restore(); }
+    function drawPlayer(now) { if(isDowned(player)){drawDowned(player,"P1",now);return;} const exposure=clamp((player.exposedUntil-now)/460,0,1), sheltered=isSheltered(player);ctx.save();if(exposure>0){const halo=ctx.createRadialGradient(player.x,player.y,0,player.x,player.y,20);halo.addColorStop(0,`rgba(161,42,48,${exposure*.24})`);halo.addColorStop(1,"rgba(161,42,48,0)");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(player.x,player.y,20,0,Math.PI*2);ctx.fill();ctx.globalAlpha=exposure*.88;ctx.strokeStyle="#d44349";ctx.lineWidth=1;ctx.setLineDash([1,4]);ctx.shadowColor="rgba(161,42,48,.85)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(player.x,player.y,10+exposure*8,-.72,Math.PI*.72);ctx.stroke();ctx.setLineDash([]);}ctx.globalAlpha=.26+exposure*.34;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.75;ctx.beginPath();ctx.arc(player.x,player.y,7.5,.28,Math.PI*1.63);ctx.moveTo(player.x+5.4,player.y-5.4);ctx.lineTo(player.x+8.6,player.y-8.6);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.34)":"rgba(255,255,255,.95)";ctx.shadowBlur=sheltered?4:9;ctx.beginPath();ctx.arc(player.x,player.y,player.r*.62,0,Math.PI*2);ctx.fill();ctx.restore(); }
+    function drawPlayer2(now) { if(!coOp||!player2)return;if(isDowned(player2)){drawDowned(player2,"P2",now);return;}const exposure=clamp((player2.exposedUntil-now)/260,0,1), sheltered=isSheltered(player2);ctx.save();ctx.translate(player2.x,player2.y);ctx.globalAlpha=.54+exposure*.26;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.9;ctx.setLineDash([2,4]);ctx.beginPath();ctx.arc(0,0,7.3,-.52,Math.PI*1.22);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(5.1,-5.1);ctx.lineTo(8.1,-8.1);ctx.moveTo(4.8,0);ctx.lineTo(8.1,0);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=COLORS.white;ctx.shadowColor=sheltered?"rgba(246,246,242,.28)":"rgba(246,246,242,.76)";ctx.shadowBlur=sheltered?3:7;ctx.beginPath();ctx.arc(0,0,1.75,0,Math.PI*2);ctx.fill();ctx.restore(); }
     function drawPartnerHint() { if(!coOp||!player2||partnerHint<=.04)return;const dx=player2.x-player.x,dy=player2.y-player.y,cx=width*.5,cy=height*.5,inset=30,tx=(width*.5-inset)/Math.max(Math.abs(dx),1),ty=(height*.5-inset)/Math.max(Math.abs(dy),1),t=Math.min(tx,ty),x=cx+dx*t,y=cy+dy*t,angle=Math.atan2(dy,dx);ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.globalAlpha=partnerHint*.38;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.85;ctx.setLineDash([2,7]);ctx.beginPath();ctx.arc(0,0,10,.18,Math.PI*1.54);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=COLORS.white;ctx.beginPath();ctx.arc(0,0,1.2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=partnerHint*.28;ctx.beginPath();ctx.moveTo(10,0);ctx.lineTo(15,0);ctx.stroke();ctx.restore(); }
     function drawPrologue(now) {
       const active = state !== "prologue-title";
@@ -800,6 +865,7 @@
         const drawChannel=(x,label,selected,paired)=>{ctx.save();ctx.translate(x,y);ctx.globalAlpha=selected?.92:.24;ctx.strokeStyle=COLORS.white;ctx.lineWidth=selected?1.12:.75;ctx.setLineDash(selected?[]:[2,10]);ctx.shadowColor=selected?"rgba(246,246,242,.56)":"rgba(246,246,242,.18)";ctx.shadowBlur=selected?12:3;ctx.beginPath();ctx.arc(0,0,radius,.20,Math.PI*1.67);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=selected?.76:.20;ctx.beginPath();ctx.arc(0,0,radius*.54,-.16,Math.PI*.43);ctx.stroke();ctx.beginPath();ctx.moveTo(radius*.67,-radius*.67);ctx.lineTo(radius*.92,-radius*.92);ctx.stroke();ctx.fillStyle=COLORS.white;ctx.shadowColor="rgba(246,246,242,.8)";ctx.shadowBlur=selected?12:4;ctx.globalAlpha=selected?1:.42;ctx.beginPath();ctx.arc(0,0,2.1,0,Math.PI*2);ctx.fill();if(paired){ctx.globalAlpha=selected?.86:.28;ctx.beginPath();ctx.arc(radius*.31,0,1.55,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(radius*.08,-radius*.32);ctx.lineTo(radius*.48,-radius*.32);ctx.moveTo(radius*.42,radius*.31);ctx.lineTo(radius*.73,radius*.31);ctx.stroke();ctx.font="7px ui-monospace";ctx.fillText(selected?"SYNC // READY":"SYNC // NULL",-radius*.48,-radius*1.25);}else{ctx.globalAlpha=selected?.72:.24;ctx.font="7px ui-monospace";ctx.fillText(selected?"SOURCE // READY":"SOURCE // NULL",-radius*.56,-radius*1.25);}ctx.globalAlpha=selected?.66:.25;ctx.font="8px ui-monospace";ctx.fillStyle=COLORS.white;ctx.fillText(label,-radius*.53,radius*1.27);ctx.restore();};
         drawChannel(soloX,"01 // 单回路",selectedMode==="solo",false); drawChannel(coopX,"02 // 双信道",selectedMode==="coop",true);
         ctx.save();ctx.globalAlpha=.22;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.75;ctx.setLineDash([2,10]);ctx.beginPath();ctx.moveTo(soloX+radius*1.24,y);ctx.lineTo(coopX-radius*1.24,y);ctx.stroke();ctx.setLineDash([]);ctx.font="7px ui-monospace";ctx.fillStyle=COLORS.white;ctx.fillText(selectedMode==="coop"?"ARRAY // 02 // AWAITING PAIR":"ARRAY // 01 // STANDALONE",width*.5-68,y+radius*1.74);ctx.restore();
+        if(modeLink){const progress=clamp((now-modeLink.startedAt)/980,0,1),x=modeLink.mode==="coop"?coopX:soloX;ctx.save();ctx.translate(x,y);ctx.globalAlpha=.75*(1-progress*.22);ctx.strokeStyle=COLORS.white;ctx.lineWidth=1;ctx.shadowColor="rgba(246,246,242,.8)";ctx.shadowBlur=12;ctx.setLineDash([2,5]);ctx.beginPath();ctx.arc(0,0,radius*(1.42-progress*.68),-.72,Math.PI*.72);ctx.stroke();ctx.setLineDash([]);for(let i=0;i<3;i+=1){const a=-.62+i*.62,from=radius*(1.18-progress*.48),to=radius*(.67-progress*.22);ctx.globalAlpha=.22+progress*.55;ctx.beginPath();ctx.moveTo(Math.cos(a)*from,Math.sin(a)*from);ctx.lineTo(Math.cos(a)*to,Math.sin(a)*to);ctx.stroke();}ctx.globalAlpha=.6+progress*.4;ctx.fillStyle=COLORS.white;ctx.beginPath();ctx.arc(0,0,2.2+progress*1.4,0,Math.PI*2);ctx.fill();ctx.restore();}
       }
       if (active) {
         const alpha = state === "prologue-wake" ? clamp(1 - (prologue.wakeUntil - now) / 1100,0,1) : .72;
@@ -832,7 +898,7 @@
     function render(now) { ctx.clearRect(0,0,width,height);if(finalEnding&&(state==="won"||state==="replay-complete")){drawEndingVisual(finalEnding,now);return;}if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawRelays(now);drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now);drawPlayer2(now);drawPartnerHint();drawSilenceReset(now); }
     function frame(now) { const delta=Math.min(.035,(now-lastTime)/1000);lastTime=now;update(delta,now);render(now);requestAnimationFrame(frame); }
     function actionInput() { if(state==="prologue-title")enterSelectedMode();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); else if(state==="replay-complete")openReplay(); }
-    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="settings"){if(key==="escape")closeSettings();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(key==="escape"){openSettings();event.preventDefault();return;}if(state==="prologue-title"){if(key==="arrowleft"||key==="1"){selectMode("solo");event.preventDefault();return;}if(key==="arrowright"||key==="2"){selectMode("coop");event.preventDefault();return;}if(key==="enter"){actionInput();event.preventDefault();return;}return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="e"){emitPulse();event.preventDefault();}if(key==="/"){emitAnalysisPulse();event.preventDefault();}if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(attemptRevive()){event.preventDefault();return;}if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
+    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(bindingCapture){event.preventDefault();captureBinding(event);return;}if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="settings"){if(key==="escape")closeSettings();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(key==="escape"){openSettings();event.preventDefault();return;}if(state==="prologue-title"){if(key==="arrowleft"||key==="1"){selectMode("solo");event.preventDefault();return;}if(key==="arrowright"||key==="2"){selectMode("coop");event.preventDefault();return;}if(key==="enter"){actionInput();event.preventDefault();return;}return;}const activeScope=coOp?"coop":"solo", boundKeys=Object.values(bindings.solo).concat(Object.values(bindings.coop));if(boundKeys.includes(key)||["arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if((!coOp&&matchesBinding("solo","pulse",key))||(coOp&&matchesBinding("coop","p1Pulse",key))){emitPulse();event.preventDefault();}if(coOp&&matchesBinding("coop","p2Pulse",key)){emitAnalysisPulse();event.preventDefault();}if((!coOp&&matchesBinding("solo","bait",key))||(coOp&&matchesBinding("coop","p1Bait",key))){event.preventDefault();deployBait();}if(matchesBinding(activeScope,"recover",key)){if(attemptRevive()){event.preventDefault();return;}if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
     addEventListener("keyup",event=>{keys[event.key.toLowerCase()]=false;});
     addEventListener("pointerdown",event=>{if(event.button!==0||state==="archive"||state==="settings"||state==="replay")return;if(state==="prologue-title"){selectMode(event.clientX<width*.5?"solo":"coop");enterSelectedMode();}else if(state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
     archivePrevEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage>0){archivePage-=1;}else{for(let index=archiveEntryIndex-1;index>=0;index-=1){if(entryIntegrity(index)>0){archiveEntryIndex=index;archivePage=2;break;}}}updateArchivePage();});
@@ -849,8 +915,12 @@
     volumeControlEl.addEventListener("input",()=>{audioPrefs.volume=Number(volumeControlEl.value)/100;persistAudioPrefs();updateSettingsUi();updateAudioMix();});
     bassControlEl.addEventListener("input",()=>{audioPrefs.bass=Number(bassControlEl.value)/100;persistAudioPrefs();updateSettingsUi();updateAudioMix();});
     calibrationRunEl.addEventListener("click",runCalibration);
+    bindingTabsEl.addEventListener("click",event=>{const target=event.target.closest("[data-binding-scope]");if(!target)return;bindingScope=target.dataset.bindingScope;bindingCapture=null;bindingStatusEl.textContent="选择动作 // 按下新键";renderBindings();});
+    bindingListEl.addEventListener("click",event=>{const target=event.target.closest("[data-binding-action]");if(!target)return;bindingCapture={scope:bindingScope,action:target.dataset.bindingAction};bindingStatusEl.textContent=`等待输入 // ${BINDING_LABELS[bindingScope][bindingCapture.action]}。`;renderBindings();});
+    bindingResetEl.addEventListener("click",()=>resetBindings(bindingScope));
+    coopProgressResetEl.addEventListener("click",()=>{resetCoopProgress();updateSettingsUi();bindingStatusEl.textContent="双信道续行已清除 // 从章节 I 开始。";});
     addEventListener("resize",resize);
-    updateSettingsUi(); resize();if(DEMO){coOp=PREVIEW_COOP;const previewChapter=PREVIEW_TRIAL?clamp(Number(QUERY.get("trial")||1)-1,0,3):PREVIEW_SILENCE?2:0;loadChapter(previewChapter,true);beginChapter();if(PREVIEW_SILENCE){player.x=shelters[0].x;player.y=shelters[0].y;silencePulseUntil=performance.now()+2200;}if(PREVIEW_THREAT){alert=.88;monsters[0].x=player.x+width*.075;monsters[0].y=player.y-height*.04;huntUntil=performance.now()+99999;}if(PREVIEW_RELAY||PREVIEW_TRIAL){records.forEach(record=>{record.collected=true;record.revealUntil=performance.now()+9999;});relays.forEach(relay=>relay.revealUntil=performance.now()+9999);if(relayTask?.mode==="p1-first"){player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x-width*.06;player2.y=relays[1].y;}else if(relayTask?.mode==="p2-first"){player.x=relays[0].x-width*.06;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}else{player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}}if((PREVIEW_FAR||PREVIEW_DECOY)&&player2){player2.x=width*.90;player2.y=height*.82;}if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100,harmony:8};state="won";const previewTitles={"ER-00":"漂流噪声","ER-01":"回声仍在","ER-02":"岸上无声","CR-00":"失配记录","CR-01":"双声残响","CR-02":"同相离岸"};showStatus("brief","最终记录 " + PREVIEW_ENDING,previewTitles[PREVIEW_ENDING]||"预览记录","预览 // 最终记录画面");}if(PREVIEW_SETTINGS)openSettings();}else{loadPrologue(true);if(PREVIEW_MODE==="coop")selectMode("coop");}requestAnimationFrame(frame);
+    updateSettingsUi(); resize();if(DEMO){if(PREVIEW_REMAP){bindings={solo:{...bindings.solo,right:"l",pulse:"k"},coop:{...bindings.coop,p1Pulse:"q",p2Pulse:"."}};coopProgress={nextChapter:2,completions:3};bindingScope="coop";}coOp=PREVIEW_COOP;const previewChapter=PREVIEW_TRIAL?clamp(Number(QUERY.get("trial")||1)-1,0,3):PREVIEW_SILENCE?2:0;loadChapter(previewChapter,true);beginChapter();if(PREVIEW_SILENCE){player.x=shelters[0].x;player.y=shelters[0].y;silencePulseUntil=performance.now()+2200;}if(PREVIEW_THREAT){alert=.88;monsters[0].x=player.x+width*.075;monsters[0].y=player.y-height*.04;huntUntil=performance.now()+99999;}if(PREVIEW_RELAY||PREVIEW_TRIAL){records.forEach(record=>{record.collected=true;record.revealUntil=performance.now()+9999;});relays.forEach(relay=>relay.revealUntil=performance.now()+9999);if(relayTask?.mode==="p1-first"){player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x-width*.06;player2.y=relays[1].y;}else if(relayTask?.mode==="p2-first"){player.x=relays[0].x-width*.06;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}else{player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}}if((PREVIEW_FAR||PREVIEW_DECOY)&&player2){player2.x=width*.90;player2.y=height*.82;}if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100,harmony:8};state="won";const previewTitles={"ER-00":"漂流噪声","ER-01":"回声仍在","ER-02":"岸上无声","CR-00":"失配记录","CR-01":"双声残响","CR-02":"同相离岸"};showStatus("brief","最终记录 " + PREVIEW_ENDING,previewTitles[PREVIEW_ENDING]||"预览记录","预览 // 最终记录画面");}if(PREVIEW_SETTINGS)openSettings();}else{loadPrologue(true);if(PREVIEW_MODE==="coop")selectMode("coop");if(PREVIEW_LINK){selectedMode=PREVIEW_LINK==="coop"?"coop":"solo";modeLink={mode:selectedMode,startedAt:performance.now()-360,until:performance.now()+99999};statusEl.dataset.mode="link";showStatus("brief",selectedMode==="coop"?"双信道校验 // 阵列收束":"单回路校验 // 源点收束",selectedMode==="coop"?"正在接通双信道":"正在接通监听","预览 // 接通信号校验");}}requestAnimationFrame(frame);
   })();
   </script>
 </body>
