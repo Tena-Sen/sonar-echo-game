@@ -1,0 +1,15 @@
+<design>
+  <size width="1280" height="720"></size>
+  <color name="bg" value="#000000"/>
+  <color name="text-main" value="#F4F6F9"/>
+  <color name="text-muted" value="#8A9BAE"/>
+  <color name="threat" value="#E53E3E"/>
+  <color name="key-dir" value="#D4AF37"/>
+  <color name="grid-line" value="#1A202C"/>
+  <color name="sonar-ring" value="#FFFFFF"/>
+  <font name="display" family="Noto Sans SC" size="48"/>
+  <font name="heading" family="Noto Sans SC" size="32"/>
+  <font name="body" family="Noto Sans SC" size="18"/>
+  <font name="caption" family="Noto Sans SC" size="14"/>
+  <font name="mono" family="Roboto Mono" size="12"/>
+</design>

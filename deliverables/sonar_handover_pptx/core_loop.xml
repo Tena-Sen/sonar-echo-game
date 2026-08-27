@@ -1,0 +1,26 @@
+<slide id="core_loop">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="320" height="18" font="mono" color="text-muted" wrap="false">CORE LOOP // CAUSAL CONSTRAINT</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="slide-index" x="80" y="112" width="90" height="18" font="mono" color="key-dir" wrap="false">01 // LOOP</text>
+  <text id="slide-title" x="80" y="142" width="650" height="46" font="heading" size="34" color="text-main" wrap="false">核心不是看见，而是发声的代价</text>
+  <shape id="title-rule" type="line" x="80" y="212" width="520" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="core-thesis" x="80" y="254" width="490" height="76" font="body" size="22" color="text-main" line-height="1.32">每一次主声呐都同时完成两件事：把黑暗切成可读证据，也把玩家的位置交给回应者。</text>
+  <text id="rule-label" x="80" y="378" width="380" height="18" font="mono" color="text-muted" wrap="false">IMPLEMENTATION INVARIANTS</text>
+  <text id="rule-list" x="80" y="410" width="520" height="116" font="body" size="18" color="text-muted" line-height="1.55"><p>白环扩张后才短暂显形墙体、记录与出口。</p><p>主声呐抬升警觉，并为怪物写入调查目标。</p><p>静默、诱饵与协作只改变决策，不取消代价。</p></text>
+  <shape id="sonar-ring" type="ellipse" x="770" y="255" width="150" height="150" fill="none" stroke="sonar-ring" stroke-width="2"/>
+  <shape id="sonar-center" type="ellipse" x="841" y="326" width="8" height="8" fill="sonar-ring"/>
+  <text id="sonar-label" x="747" y="428" width="196" height="18" font="mono" size="12" color="text-main" align="center" wrap="false">MAIN PULSE // EMIT</text>
+  <shape id="evidence-line" type="line" x="920" y="304" width="103" height="-46" stroke="text-main" stroke-width="1" arrow-end="arrow"/>
+  <shape id="threat-line" type="line" x="920" y="357" width="103" height="96" stroke="threat" stroke-width="1" arrow-end="arrow"/>
+  <shape id="evidence-mark" type="diamond" x="1040" y="228" width="28" height="28" fill="none" stroke="text-main" stroke-width="1"/>
+  <text id="evidence-title" x="1084" y="218" width="120" height="22" font="mono" size="12" color="text-main" wrap="false">EVIDENCE</text>
+  <text id="evidence-copy" x="1084" y="246" width="118" height="45" font="caption" size="14" color="text-muted">墙 / 记录 / 出口短暂可读</text>
+  <shape id="threat-mark" type="line" x="1042" y="448" width="30" height="0" stroke="threat" stroke-width="3"/>
+  <shape id="threat-mark-b" type="line" x="1042" y="458" width="20" height="0" stroke="threat" stroke-width="1"/>
+  <text id="threat-title" x="1084" y="425" width="120" height="22" font="mono" size="12" color="threat" wrap="false">EXPOSURE</text>
+  <text id="threat-copy" x="1084" y="453" width="118" height="45" font="caption" size="14" color="text-muted">警觉上升 / 怪物调查 / 追猎压力</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">INVARIANT // SOUND REVEALS AND COSTS</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">01 / 10</text>
+</slide>

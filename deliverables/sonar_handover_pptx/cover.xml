@@ -1,0 +1,19 @@
+<slide id="cover">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="320" height="18" font="mono" color="text-muted" wrap="false">SONAR // DEV HANDOVER // 01</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <shape id="cover-ring" type="ellipse" x="790" y="150" width="340" height="340" fill="none" stroke="sonar-ring" stroke-width="2"/>
+  <shape id="cover-inner-ring" type="ellipse" x="892" y="252" width="136" height="136" fill="none" stroke="grid-line" stroke-width="1" stroke-dash="dot"/>
+  <shape id="cover-center" type="ellipse" x="956" y="316" width="8" height="8" fill="sonar-ring"/>
+  <shape id="cover-direction" type="line" x="1086" y="188" width="28" height="-28" stroke="sonar-ring" stroke-width="2"/>
+  <shape id="cover-tick-a" type="line" x="764" y="318" width="20" height="0" stroke="grid-line" stroke-width="1"/>
+  <shape id="cover-tick-b" type="line" x="1130" y="318" width="20" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="cover-kicker" x="84" y="206" width="430" height="22" font="mono" color="key-dir" wrap="false">TECHNICAL DELIVERY // STABLE BUILD</text>
+  <text id="cover-title" x="80" y="246" width="610" height="82" font="display" size="54" color="text-main" wrap="false">《回声》Sonar</text>
+  <text id="cover-subtitle" x="84" y="350" width="560" height="62" font="heading" size="27" color="text-main">后续开发代理技术交接</text>
+  <text id="cover-copy" x="84" y="426" width="515" height="54" font="body" size="18" color="text-muted" line-height="1.35">从声呐代价到双信道默契试炼：当前实现、状态边界与安全迭代路径。</text>
+  <text id="cover-baseline" x="84" y="512" width="360" height="18" font="mono" color="text-muted" wrap="false">DELIVERY BASELINE // c39cd7d</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">BUILD // SESSION-INTEGRITY HARDENED</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">00 / 10</text>
+</slide>

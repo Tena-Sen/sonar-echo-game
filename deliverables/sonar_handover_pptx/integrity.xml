@@ -1,0 +1,27 @@
+<slide id="integrity">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="390" height="18" font="mono" color="text-muted" wrap="false">SESSION INTEGRITY // FOCUS / BOUNDARIES</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="slide-index" x="80" y="112" width="180" height="18" font="mono" color="key-dir" wrap="false">09 // INTEGRITY</text>
+  <text id="slide-title" x="80" y="142" width="850" height="46" font="heading" size="34" color="text-main" wrap="false">双人稳定性取决于焦点与状态边界</text>
+  <text id="risk-kicker" x="80" y="250" width="180" height="18" font="mono" color="threat" wrap="false">RISK SOURCES</text>
+  <shape id="risk-line" type="line" x="80" y="282" width="245" height="0" stroke="threat" stroke-width="1"/>
+  <text id="risk-list" x="80" y="310" width="300" height="175" font="body" size="17" color="text-muted" line-height="1.58"><p>残留 URL 参数改变接入状态</p><p>iframe 没有明确交接焦点</p><p>切换覆盖层后移动键遗留</p><p>回放继承双人实体或键位</p></text>
+  <text id="isolation-kicker" x="478" y="230" width="320" height="18" font="mono" size="12" color="key-dir" align="center" wrap="false">FORMAL SESSION / CONTROLLED HANDOFF</text>
+  <shape id="shell-frame" type="rect" x="465" y="265" width="350" height="215" fill="none" stroke="grid-line" stroke-width="1" stroke-dash="dot"/>
+  <shape id="iframe-frame" type="rect" x="505" y="300" width="270" height="145" fill="none" stroke="text-muted" stroke-width="1" stroke-dash="dash"/>
+  <shape id="canvas-frame" type="rect" x="550" y="335" width="180" height="75" fill="none" stroke="text-main" stroke-width="1"/>
+  <shape id="canvas-point" type="ellipse" x="636" y="368" width="8" height="8" fill="text-main"/>
+  <shape id="frame-notch" type="line" x="718" y="330" width="24" height="-24" stroke="text-main" stroke-width="2"/>
+  <text id="shell-name" x="478" y="276" width="130" height="16" font="mono" size="11" color="text-muted" wrap="false">SHELL</text>
+  <text id="iframe-name" x="518" y="311" width="130" height="16" font="mono" size="11" color="text-muted" wrap="false">IFRAME</text>
+  <text id="canvas-name" x="563" y="346" width="130" height="16" font="mono" size="11" color="text-main" wrap="false">CANVAS</text>
+  <text id="restore-kicker" x="880" y="250" width="220" height="18" font="mono" color="text-muted" wrap="false">RECOVERY RULES</text>
+  <shape id="restore-line" type="line" x="880" y="282" width="245" height="0" stroke="text-main" stroke-width="1"/>
+  <text id="restore-list" x="880" y="310" width="290" height="175" font="body" size="17" color="text-muted" line-height="1.58"><p>过滤未知 query；地址变化重建会话。</p><p>加载后向 Canvas 请求键盘焦点。</p><p>blur / hidden 时清空按键与捕获。</p><p>关闭设置、取消中止、载入章节时恢复焦点。</p></text>
+  <shape id="handoff-line" type="line" x="640" y="510" width="0" height="42" stroke="key-dir" stroke-width="2" arrow-end="arrow"/>
+  <text id="handoff-flow" x="230" y="570" width="820" height="26" font="mono" size="14" color="key-dir" align="center" wrap="false">ENTRY → FOCUS CANVAS → CLEAR ON OVERLAY / BLUR → RESTORE ON RETURN</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">INTEGRITY // P1/P2 INPUT MUST NOT DRIFT</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">09 / 10</text>
+</slide>

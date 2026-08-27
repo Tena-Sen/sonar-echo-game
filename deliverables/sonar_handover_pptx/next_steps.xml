@@ -1,0 +1,29 @@
+<slide id="next_steps">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="420" height="18" font="mono" color="text-muted" wrap="false">NEXT AGENT // PRIORITY / SAFE ITERATION</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="slide-index" x="80" y="112" width="160" height="18" font="mono" color="key-dir" wrap="false">10 // NEXT</text>
+  <text id="slide-title" x="80" y="142" width="920" height="46" font="heading" size="34" color="text-main" wrap="false">第一轮工作应先消除回归风险</text>
+  <text id="thesis" x="80" y="205" width="850" height="25" font="body" size="18" color="text-muted">先验证真正的 P1/P2 输入，再拆开状态边界；新的内容必须建立在可恢复、可测试的会话之上。</text>
+  <shape id="priority-rule-a" type="line" x="425" y="268" width="0" height="236" stroke="grid-line" stroke-width="1"/>
+  <shape id="priority-rule-b" type="line" x="815" y="268" width="0" height="236" stroke="grid-line" stroke-width="1"/>
+  <text id="p0-kicker" x="80" y="280" width="170" height="20" font="mono" size="13" color="threat" wrap="false">P0 // PROTECT</text>
+  <shape id="p0-line" type="line" x="80" y="318" width="160" height="0" stroke="threat" stroke-width="2"/>
+  <text id="p0-title" x="80" y="348" width="290" height="30" font="heading" size="22" color="text-main">输入回归脚本</text>
+  <text id="p0-copy" x="80" y="397" width="290" height="88" font="body" size="16" color="text-muted" line-height="1.5"><p>覆盖 P1/P2、焦点切换、重连、退出确认和续行。</p><p>截图不能替代浏览器级真实键盘事件。</p></text>
+  <text id="p1-kicker" x="465" y="280" width="170" height="20" font="mono" size="13" color="text-main" wrap="false">P1 // STABILIZE</text>
+  <shape id="p1-line" type="line" x="465" y="318" width="160" height="0" stroke="text-main" stroke-width="2"/>
+  <text id="p1-title" x="465" y="348" width="300" height="30" font="heading" size="22" color="text-main">提取可测试纯函数</text>
+  <text id="p1-copy" x="465" y="397" width="300" height="88" font="body" size="16" color="text-muted" line-height="1.5"><p>优先拆配置、存储、状态和绘制计算。</p><p>保留单文件可独立运行，不做一次性大重构。</p></text>
+  <text id="p2-kicker" x="850" y="280" width="170" height="20" font="mono" size="13" color="key-dir" wrap="false">P2 // EXTEND</text>
+  <shape id="p2-line" type="line" x="850" y="318" width="160" height="0" stroke="key-dir" stroke-width="2"/>
+  <text id="p2-title" x="850" y="348" width="310" height="30" font="heading" size="22" color="text-main">迁移与协作体验</text>
+  <text id="p2-copy" x="850" y="397" width="310" height="88" font="body" size="16" color="text-muted" line-height="1.5"><p>安全导入/导出本地存档、手柄映射、协作回放摘要。</p><p>不改变默认键盘与本地双人约定。</p></text>
+  <shape id="closure-left" type="line" x="500" y="575" width="116" height="0" stroke="grid-line" stroke-width="1"/>
+  <shape id="closure-right" type="line" x="664" y="575" width="116" height="0" stroke="key-dir" stroke-width="1" arrow-end="arrow"/>
+  <shape id="closure-point" type="ellipse" x="636" y="571" width="8" height="8" fill="text-main"/>
+  <text id="closure-copy" x="365" y="607" width="550" height="20" font="mono" size="12" color="text-muted" align="center" wrap="false">NEXT AGENT // CHANGE ONE RISK SLICE, VERIFY, THEN SAVE</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">HANDOVER // READY FOR CONTROLLED ITERATION</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">10 / 10</text>
+</slide>

@@ -1,0 +1,29 @@
+<slide id="architecture">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="380" height="18" font="mono" color="text-muted" wrap="false">ARCHITECTURE // STATIC SHELL / GAME CORE</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="slide-index" x="80" y="112" width="150" height="18" font="mono" color="key-dir" wrap="false">03 // SYSTEM</text>
+  <text id="slide-title" x="80" y="142" width="780" height="46" font="heading" size="34" color="text-main" wrap="false">一个静态外壳承载一个完整游戏体</text>
+  <text id="shell-label" x="80" y="220" width="210" height="18" font="mono" color="text-muted" wrap="false">FORMAL ENTRY LAYER</text>
+  <shape id="shell-line" type="line" x="80" y="262" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="react-shell" x="100" y="282" width="230" height="25" font="body" size="18" color="text-main">React / Vite 全屏外壳</text>
+  <text id="query-shell" x="450" y="282" width="225" height="25" font="body" size="18" color="text-main">白名单查询隔离</text>
+  <text id="focus-shell" x="800" y="282" width="270" height="25" font="body" size="18" color="text-main">iframe 与 Canvas 焦点交接</text>
+  <shape id="arrow-to-core" type="line" x="640" y="321" width="0" height="42" stroke="key-dir" stroke-width="2" arrow-end="arrow"/>
+  <text id="core-label" x="462" y="376" width="355" height="26" font="mono" size="13" color="key-dir" align="center" wrap="false">SINGLE HTML // SOURCE OF TRUTH</text>
+  <shape id="core-frame-top" type="line" x="190" y="416" width="770" height="0" stroke="text-main" stroke-width="1"/>
+  <text id="core-title" x="210" y="438" width="700" height="34" font="heading" size="24" color="text-main" align="center" wrap="false">Canvas · 状态机 · 输入 · Web Audio · 存储 · 绘制</text>
+  <shape id="core-frame-bottom" type="line" x="190" y="488" width="770" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="runtime-label" x="80" y="530" width="260" height="18" font="mono" color="text-muted" wrap="false">RUNTIME CLUSTERS</text>
+  <shape id="runtime-rule-a" type="line" x="80" y="560" width="880" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="runtime-state" x="80" y="582" width="180" height="22" font="body" size="16" color="text-main">状态与章节流</text>
+  <text id="runtime-input" x="305" y="582" width="190" height="22" font="body" size="16" color="text-main">输入与焦点</text>
+  <text id="runtime-audio" x="530" y="582" width="190" height="22" font="body" size="16" color="text-main">声场与威胁</text>
+  <text id="runtime-store" x="755" y="582" width="205" height="22" font="body" size="16" color="text-main">档案与本地存储</text>
+  <text id="risk-label" x="1015" y="380" width="165" height="18" font="mono" color="threat" wrap="false">MODIFY RISK // HIGH</text>
+  <shape id="risk-line" type="line" x="1015" y="414" width="130" height="0" stroke="threat" stroke-width="1"/>
+  <text id="risk-copy" x="1015" y="434" width="170" height="92" font="caption" size="14" color="text-muted">内联脚本不由 TypeScript 检查。每次改动必须先完成抽取解析，再进入构建与浏览器验证。</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">SOURCE // SINGLE-FILE CANVAS GAME</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">03 / 10</text>
+</slide>

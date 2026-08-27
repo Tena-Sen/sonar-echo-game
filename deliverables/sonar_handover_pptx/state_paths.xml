@@ -1,0 +1,31 @@
+<slide id="state_paths">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="360" height="18" font="mono" color="text-muted" wrap="false">STATE FLOW // ENTRY / OVERLAYS</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="slide-index" x="80" y="112" width="130" height="18" font="mono" color="key-dir" wrap="false">04 // PATHS</text>
+  <text id="slide-title" x="80" y="142" width="750" height="46" font="heading" size="34" color="text-main" wrap="false">两条接入路径共享一套章节世界</text>
+  <text id="solo-kicker" x="100" y="236" width="200" height="18" font="mono" color="text-muted" wrap="false">01 // SOLO LISTENING</text>
+  <text id="solo-a" x="100" y="278" width="250" height="26" font="body" size="18" color="text-main">模式选择 → 接通校验</text>
+  <shape id="solo-line-a" type="line" x="223" y="312" width="0" height="36" stroke="text-muted" stroke-width="1" arrow-end="arrow"/>
+  <text id="solo-b" x="100" y="362" width="260" height="26" font="body" size="18" color="text-main">苏醒 → 移动校准 → 首次回声</text>
+  <shape id="solo-line-b" type="line" x="223" y="396" width="0" height="36" stroke="text-muted" stroke-width="1" arrow-end="arrow"/>
+  <text id="solo-c" x="100" y="446" width="245" height="26" font="body" size="18" color="text-main">异常回应 → 章节 I</text>
+  <text id="link-kicker" x="515" y="245" width="255" height="18" font="mono" color="key-dir" align="center" wrap="false">980ms // LINK VERIFICATION</text>
+  <shape id="link-ring" type="ellipse" x="563" y="288" width="160" height="160" fill="none" stroke="sonar-ring" stroke-width="2"/>
+  <shape id="link-center" type="ellipse" x="639" y="364" width="8" height="8" fill="sonar-ring"/>
+  <shape id="link-out-left" type="line" x="563" y="368" width="-90" height="0" stroke="key-dir" stroke-width="1" arrow-end="arrow"/>
+  <shape id="link-out-right" type="line" x="723" y="368" width="90" height="0" stroke="key-dir" stroke-width="1" arrow-end="arrow"/>
+  <text id="coop-kicker" x="865" y="236" width="230" height="18" font="mono" color="text-muted" wrap="false">02 // DUAL CHANNEL</text>
+  <text id="coop-a" x="865" y="278" width="285" height="26" font="body" size="18" color="text-main">模式选择 → 接通校验</text>
+  <shape id="coop-line-a" type="line" x="990" y="312" width="0" height="36" stroke="text-muted" stroke-width="1" arrow-end="arrow"/>
+  <text id="coop-b" x="865" y="362" width="300" height="26" font="body" size="18" color="text-main">P1 / P2 职责校准 → 待玩章节</text>
+  <shape id="coop-line-b" type="line" x="990" y="396" width="0" height="36" stroke="text-muted" stroke-width="1" arrow-end="arrow"/>
+  <text id="coop-c" x="865" y="446" width="285" height="26" font="body" size="18" color="text-main">双人章节 I–IV → CR 终局</text>
+  <shape id="overlay-rule" type="line" x="80" y="535" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="overlay-kicker" x="80" y="555" width="275" height="18" font="mono" color="threat" wrap="false">OVERLAY BOUNDARY // CLEAR INPUT</text>
+  <text id="overlay-items" x="80" y="588" width="1080" height="34" font="body" size="18" color="text-muted">设备档案　/　章节回放　/　监听设置　/　中止确认</text>
+  <text id="overlay-note" x="800" y="588" width="360" height="34" font="caption" size="14" color="text-main" align="right">进入覆盖层清空按键；返回时重新聚焦 Canvas。</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">STATE // EXPLICIT TRANSITIONS ONLY</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">04 / 10</text>
+</slide>

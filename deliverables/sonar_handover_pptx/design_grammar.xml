@@ -1,0 +1,32 @@
+<slide id="design_grammar">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="360" height="18" font="mono" color="text-muted" wrap="false">DESIGN GRAMMAR // NON-NEGOTIABLES</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="slide-index" x="80" y="112" width="120" height="18" font="mono" color="key-dir" wrap="false">02 // GRAMMAR</text>
+  <text id="slide-title" x="80" y="142" width="720" height="46" font="heading" size="34" color="text-main" wrap="false">视觉与声音有严格语义边界</text>
+  <shape id="column-rule-a" type="line" x="430" y="246" width="0" height="298" stroke="grid-line" stroke-width="1"/>
+  <shape id="column-rule-b" type="line" x="820" y="246" width="0" height="298" stroke="grid-line" stroke-width="1"/>
+  <text id="color-kicker" x="80" y="250" width="250" height="18" font="mono" color="text-muted" wrap="false">01 // COLOR SEMANTICS</text>
+  <shape id="white-sample" type="line" x="80" y="298" width="78" height="0" stroke="text-main" stroke-width="3"/>
+  <text id="white-label" x="178" y="286" width="200" height="34" font="body" size="18" color="text-main">冷白：确认的证据</text>
+  <shape id="red-sample" type="line" x="80" y="360" width="78" height="0" stroke="threat" stroke-width="3"/>
+  <text id="red-label" x="178" y="348" width="200" height="34" font="body" size="18" color="threat">余烬红：暴露与威胁</text>
+  <shape id="gold-sample" type="line" x="80" y="422" width="78" height="0" stroke="key-dir" stroke-width="3"/>
+  <text id="gold-label" x="178" y="410" width="200" height="34" font="body" size="18" color="key-dir">旧金：出口与远端方向</text>
+  <text id="color-note" x="80" y="488" width="290" height="50" font="caption" size="14" color="text-muted">绝对黑是默认状态；禁止把三种语义色变成装饰色。</text>
+  <text id="geometry-kicker" x="470" y="250" width="250" height="18" font="mono" color="text-muted" wrap="false">02 // GEOMETRY</text>
+  <shape id="geometry-ring" type="ellipse" x="525" y="298" width="96" height="96" fill="none" stroke="sonar-ring" stroke-width="2"/>
+  <shape id="geometry-center" type="ellipse" x="568" y="341" width="8" height="8" fill="sonar-ring"/>
+  <shape id="geometry-direction" type="line" x="606" y="313" width="19" height="-19" stroke="sonar-ring" stroke-width="2"/>
+  <text id="geometry-label" x="470" y="416" width="276" height="29" font="body" size="18" color="text-main">完整环：仅属于主动声呐</text>
+  <text id="geometry-note" x="470" y="460" width="290" height="76" font="caption" size="14" color="text-muted">墙体、触点和标记必须是断续证据。中心点 + 右上缺口 + 方向短线是设备身份。</text>
+  <text id="audio-kicker" x="860" y="250" width="250" height="18" font="mono" color="text-muted" wrap="false">03 // SOUND FIELD</text>
+  <shape id="audio-line-a" type="line" x="860" y="306" width="160" height="0" stroke="text-main" stroke-width="1"/>
+  <shape id="audio-line-b" type="line" x="860" y="332" width="118" height="0" stroke="text-muted" stroke-width="1"/>
+  <shape id="audio-line-c" type="line" x="860" y="358" width="86" height="0" stroke="threat" stroke-width="1"/>
+  <text id="audio-label" x="860" y="403" width="290" height="29" font="body" size="18" color="text-main">非语言化空间声优先</text>
+  <text id="audio-note" x="860" y="448" width="300" height="90" font="caption" size="14" color="text-muted">低频床、尘噪、怪物声纹、方向联络与校准都由 Web Audio 合成；保留静音、耳机校准和减少动态支持。</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">RULE // EVIDENCE IS SCARCE</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">02 / 10</text>
+</slide>

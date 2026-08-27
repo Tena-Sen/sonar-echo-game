@@ -1,0 +1,31 @@
+<slide id="coop_roles">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="360" height="18" font="mono" color="text-muted" wrap="false">LOCAL CO-OP // ASYMMETRIC CHANNELS</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="slide-index" x="80" y="112" width="130" height="18" font="mono" color="key-dir" wrap="false">05 // CO-OP</text>
+  <text id="slide-title" x="80" y="142" width="760" height="46" font="heading" size="34" color="text-main" wrap="false">双人模式把信息不对称变成协作</text>
+  <shape id="role-rule" type="line" x="640" y="238" width="0" height="250" stroke="grid-line" stroke-width="1"/>
+  <text id="p1-kicker" x="130" y="234" width="180" height="18" font="mono" color="text-muted" wrap="false">CHANNEL 01 // P1</text>
+  <shape id="p1-ring" type="ellipse" x="130" y="278" width="110" height="110" fill="none" stroke="sonar-ring" stroke-width="2"/>
+  <shape id="p1-center" type="ellipse" x="181" y="329" width="8" height="8" fill="sonar-ring"/>
+  <shape id="p1-exposure" type="line" x="153" y="401" width="64" height="0" stroke="threat" stroke-width="2"/>
+  <text id="p1-title" x="285" y="274" width="250" height="32" font="heading" size="24" color="text-main" wrap="false">探路回路</text>
+  <text id="p1-role" x="285" y="320" width="270" height="100" font="body" size="17" color="text-muted" line-height="1.48"><p>移动、主声呐、外置诱饵。</p><p>确认环境，也承担暴露与引怪风险。</p><p color="threat">主声呐是团队的高成本信息源。</p></text>
+  <text id="sync-kicker" x="558" y="280" width="165" height="18" font="mono" size="11" color="key-dir" align="center" wrap="false">ARRAY // SYNC</text>
+  <shape id="sync-line-a" type="line" x="555" y="330" width="74" height="0" stroke="text-main" stroke-width="1"/>
+  <shape id="sync-line-b" type="line" x="652" y="330" width="74" height="0" stroke="text-main" stroke-width="1"/>
+  <shape id="sync-point" type="ellipse" x="635" y="325" width="10" height="10" fill="text-main"/>
+  <text id="sync-copy" x="548" y="365" width="185" height="54" font="caption" size="14" color="text-muted" align="center">沟通不是提示层；它是对未知声源的共同判断。</text>
+  <text id="p2-kicker" x="875" y="234" width="180" height="18" font="mono" color="text-muted" wrap="false">CHANNEL 02 // P2</text>
+  <shape id="p2-mark-a" type="line" x="875" y="310" width="58" height="0" stroke="text-main" stroke-width="2"/>
+  <shape id="p2-mark-b" type="line" x="875" y="330" width="38" height="0" stroke="text-muted" stroke-width="1"/>
+  <shape id="p2-mark-c" type="ellipse" x="900" y="350" width="7" height="7" fill="text-main"/>
+  <text id="p2-title" x="955" y="274" width="250" height="32" font="heading" size="24" color="text-main" wrap="false">解码回路</text>
+  <text id="p2-role" x="955" y="320" width="245" height="100" font="body" size="17" color="text-muted" line-height="1.48"><p>移动、短程解析、恢复章节记录。</p><p>解析不引怪，但必须靠近目标判断。</p><p color="text-main">只有 P2 能完成记录恢复。</p></text>
+  <shape id="bottom-rule" type="line" x="80" y="525" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="bottom-label" x="80" y="550" width="230" height="18" font="mono" color="key-dir" wrap="false">CO-OP FAILURE / RECOVERY</text>
+  <text id="bottom-copy" x="80" y="585" width="1120" height="30" font="body" size="18" color="text-muted">任一人倒地后，伙伴在 6.8 秒内邻近重连；相距过远时有真实队友方位与单侧低频联络；出口要求两人共同抵达。</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">CO-OP // ROLE ASYMMETRY IS THE PUZZLE</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">05 / 10</text>
+</slide>

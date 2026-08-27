@@ -1,0 +1,32 @@
+<slide id="coop_rewards">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="400" height="18" font="mono" color="text-muted" wrap="false">CO-OP REWARDS // FALSE ECHO / CR LOGS</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="slide-index" x="80" y="112" width="160" height="18" font="mono" color="key-dir" wrap="false">07 // REWARD</text>
+  <text id="slide-title" x="80" y="142" width="840" height="46" font="heading" size="34" color="text-main" wrap="false">伪回声与默契终局提供协作回报</text>
+  <text id="false-kicker" x="80" y="250" width="230" height="18" font="mono" color="text-muted" wrap="false">FALSE ECHO // NO VISUAL MARK</text>
+  <shape id="false-source" type="line" x="80" y="304" width="76" height="0" stroke="text-main" stroke-width="2"/>
+  <shape id="false-source-b" type="line" x="80" y="320" width="46" height="0" stroke="text-muted" stroke-width="1"/>
+  <text id="false-a" x="180" y="292" width="180" height="24" font="body" size="17" color="text-main">远距侧向低频出现</text>
+  <shape id="false-arrow-a" type="line" x="270" y="332" width="0" height="42" stroke="grid-line" stroke-width="1" arrow-end="arrow"/>
+  <text id="false-b" x="180" y="388" width="180" height="24" font="body" size="17" color="text-main">两人沟通并复核</text>
+  <shape id="false-arrow-b" type="line" x="270" y="428" width="0" height="42" stroke="grid-line" stroke-width="1" arrow-end="arrow"/>
+  <text id="false-c" x="180" y="482" width="185" height="44" font="body" size="17" color="text-muted" line-height="1.18"><p>只信可验证的</p><p>真实队友与环境证据</p></text>
+  <text id="false-note" x="80" y="552" width="320" height="40" font="caption" size="14" color="text-muted">伪回声不改变敌人、路线、记录或出口；它只考验判断。</text>
+  <text id="cr-kicker" x="500" y="250" width="270" height="18" font="mono" color="text-muted" wrap="false">HIDDEN HARMONY // 8 MARKS</text>
+  <shape id="cr-spine" type="line" x="530" y="292" width="0" height="205" stroke="grid-line" stroke-width="1"/>
+  <shape id="cr-zero" type="line" x="530" y="308" width="36" height="0" stroke="threat" stroke-width="2"/>
+  <text id="cr-zero-title" x="585" y="294" width="210" height="21" font="mono" size="12" color="threat" wrap="false">CR-00 // 失配记录</text>
+  <text id="cr-zero-copy" x="585" y="320" width="205" height="32" font="caption" size="14" color="text-muted">不足半数协作勋记</text>
+  <shape id="cr-one" type="line" x="530" y="382" width="36" height="0" stroke="text-main" stroke-width="2"/>
+  <text id="cr-one-title" x="585" y="368" width="210" height="21" font="mono" size="12" color="text-main" wrap="false">CR-01 // 双声残响</text>
+  <text id="cr-one-copy" x="585" y="394" width="205" height="32" font="caption" size="14" color="text-muted">至少半数协作勋记</text>
+  <shape id="cr-two" type="line" x="530" y="456" width="36" height="0" stroke="key-dir" stroke-width="2"/>
+  <text id="cr-two-title" x="585" y="442" width="210" height="21" font="mono" size="12" color="key-dir" wrap="false">CR-02 // 同相离岸</text>
+  <text id="cr-two-copy" x="585" y="468" width="205" height="32" font="caption" size="14" color="text-muted">四章均获无断线与低警觉</text>
+  <image id="cr-ending-image" src="https://private-us-east-1.manuscdn.com/sessionFile/yEIFE2JAhESzGtTuXjPjvi/sandbox/slides_resource_ikp1kdmcq0zt8e1zl9lae-516a537e-e2b-prod-azure-central-us_1787811779349_na1fn_L2hvbWUvdWJ1bnR1L3NvbmFyLWVjaG8tZ2FtZS9kb2NzL2ltYWdlcy9zb25hci1jb29wLWVuZGluZy1jcjAy.png?x-oss-process=image/resize,w_1560,h_1560/format,webp&Expires=1789430400&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUveUVJRkUySkFoRVN6R3RUdVhqUGp2aS9zYW5kYm94L3NsaWRlc19yZXNvdXJjZV9pa3Axa2RtY3EwenQ4ZTF6bDlsYWUtNTE2YTUzN2UtZTJiLXByb2QtYXp1cmUtY2VudHJhbC11c18xNzg3ODExNzc5MzQ5X25hMWZuX0wyaHZiV1V2ZFdKMWJuUjFMM052Ym1GeUxXVmphRzh0WjJGdFpTOWtiMk56TDJsdFlXZGxjeTl6YjI1aGNpMWpiMjl3TFdWdVpHbHVaeTFqY2pBeS5wbmc~eC1vc3MtcHJvY2Vzcz1pbWFnZS9yZXNpemUsd18xNTYwLGhfMTU2MC9mb3JtYXQsd2VicCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc4OTQzMDQwMH19fV19&Key-Pair-Id=K2QY5QTL8JSY6C&Signature=MEYCIQDh~B4~wa1cizwJ56MMtq3uqFnkYbnpi3xqQYkOdsmgjwIhAOags3PF8wsNA-D2lONdb661hvMIJQkur7DtIM0HzDsl" x="900" y="255" width="260" height="325" fit="cover" stroke="grid-line" stroke-width="1"/>
+  <text id="image-caption" x="900" y="596" width="260" height="18" font="mono" size="11" color="key-dir" align="center" wrap="false">CR-02 // IMPLEMENTED CANVAS ENDING</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">REWARD // COMMUNICATION IS NOT A METER</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">07 / 10</text>
+</slide>

@@ -1,0 +1,41 @@
+<slide id="relay_trials">
+  <background color="bg"/>
+  <text id="header-sys" x="80" y="42" width="390" height="18" font="mono" color="text-muted" wrap="false">CO-OP TRIALS // RELAY TIMING</text>
+  <shape id="header-rule" type="line" x="80" y="74" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="slide-index" x="80" y="112" width="160" height="18" font="mono" color="key-dir" wrap="false">06 // RELAYS</text>
+  <text id="slide-title" x="80" y="142" width="820" height="46" font="heading" size="34" color="text-main" wrap="false">四章触点把默契变为可执行的时序</text>
+  <text id="intro" x="80" y="207" width="720" height="25" font="body" size="18" color="text-muted">记录恢复后才启用分站校验；错序只让触点回到冷白待命，而不是额外生成敌人。</text>
+  <shape id="timeline" type="line" x="130" y="384" width="1020" height="0" stroke="grid-line" stroke-width="1"/>
+  <shape id="node-one" type="diamond" x="170" y="374" width="20" height="20" fill="none" stroke="text-main" stroke-width="1"/>
+  <text id="one-kicker" x="120" y="286" width="120" height="18" font="mono" size="11" color="text-muted" align="center" wrap="false">CHAPTER I</text>
+  <text id="one-title" x="105" y="316" width="150" height="25" font="body" size="18" color="text-main" align="center" wrap="false">同步驻留</text>
+  <shape id="one-p1" type="line" x="138" y="424" width="80" height="0" stroke="text-main" stroke-width="2"/>
+  <shape id="one-p2" type="line" x="138" y="438" width="80" height="0" stroke="text-main" stroke-width="2"/>
+  <text id="one-note" x="110" y="460" width="140" height="40" font="caption" size="13" color="text-muted" align="center" line-height="1.18"><p>共同保持</p><p>作为教学</p></text>
+  <shape id="node-two" type="diamond" x="420" y="374" width="20" height="20" fill="none" stroke="text-main" stroke-width="1"/>
+  <text id="two-kicker" x="370" y="286" width="120" height="18" font="mono" size="11" color="text-muted" align="center" wrap="false">CHAPTER II</text>
+  <text id="two-title" x="355" y="316" width="150" height="25" font="body" size="18" color="text-main" align="center" wrap="false">P1 先锁定</text>
+  <shape id="two-p1" type="line" x="388" y="424" width="90" height="0" stroke="text-main" stroke-width="2"/>
+  <shape id="two-p2" type="line" x="418" y="438" width="60" height="0" stroke="text-main" stroke-width="2"/>
+  <text id="two-note" x="360" y="460" width="140" height="40" font="caption" size="13" color="text-muted" align="center" line-height="1.18"><p>P2 响应窗口</p><p>1.2 秒</p></text>
+  <shape id="node-three" type="diamond" x="670" y="374" width="20" height="20" fill="none" stroke="text-main" stroke-width="1"/>
+  <text id="three-kicker" x="620" y="286" width="120" height="18" font="mono" size="11" color="text-muted" align="center" wrap="false">CHAPTER III</text>
+  <text id="three-title" x="605" y="316" width="150" height="25" font="body" size="18" color="text-main" align="center" wrap="false">P2 先锁定</text>
+  <shape id="three-p2" type="line" x="638" y="424" width="90" height="0" stroke="text-main" stroke-width="2"/>
+  <shape id="three-p1" type="line" x="668" y="438" width="60" height="0" stroke="text-main" stroke-width="2"/>
+  <text id="three-note" x="610" y="460" width="140" height="40" font="caption" size="13" color="text-muted" align="center" line-height="1.18"><p>P1 响应窗口</p><p>0.9 秒</p></text>
+  <shape id="node-four" type="diamond" x="920" y="374" width="20" height="20" fill="none" stroke="key-dir" stroke-width="1"/>
+  <text id="four-kicker" x="870" y="286" width="120" height="18" font="mono" size="11" color="key-dir" align="center" wrap="false">CHAPTER IV</text>
+  <text id="four-title" x="855" y="316" width="150" height="25" font="body" size="18" color="key-dir" align="center" wrap="false">释放后重同步</text>
+  <shape id="four-pair-a" type="line" x="888" y="424" width="82" height="0" stroke="text-main" stroke-width="2"/>
+  <shape id="four-gap" type="line" x="924" y="438" width="10" height="0" stroke="grid-line" stroke-width="1" stroke-dash="dot"/>
+  <shape id="four-pair-b" type="line" x="888" y="452" width="82" height="0" stroke="text-main" stroke-width="2"/>
+  <text id="four-note" x="860" y="474" width="140" height="40" font="caption" size="13" color="text-muted" align="center" line-height="1.18"><p>共同释放后</p><p>0.8 秒内回合</p></text>
+  <shape id="exit-direction" type="line" x="1045" y="384" width="92" height="0" stroke="key-dir" stroke-width="1" arrow-end="arrow"/>
+  <text id="exit-label" x="1042" y="405" width="110" height="18" font="mono" size="11" color="key-dir" align="center" wrap="false">EXIT // OPEN</text>
+  <shape id="bottom-rule" type="line" x="80" y="566" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="bottom-note" x="80" y="592" width="1120" height="28" font="body" size="17" color="text-muted" align="center">失步：校验复位、播放低量冷白校验音、重新读取。不要用红色惩罚掩盖协作错误。</text>
+  <shape id="footer-rule" type="line" x="80" y="662" width="1120" height="0" stroke="grid-line" stroke-width="1"/>
+  <text id="footer-build" x="80" y="680" width="500" height="16" font="mono" color="text-muted" wrap="false">TRIALS // TIMING IS COMMUNICATION</text>
+  <text id="footer-page" x="1150" y="680" width="50" height="16" font="mono" color="text-muted" align="right" wrap="false">06 / 10</text>
+</slide>

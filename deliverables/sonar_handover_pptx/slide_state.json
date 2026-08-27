@@ -1,0 +1,133 @@
+{
+  "project_info": {
+    "title": "《回声》Sonar",
+    "created": 1787811510.203,
+    "last_updated": 1787811873.65,
+    "total_slides": 11
+  },
+  "slides": [
+    {
+      "id": "cover",
+      "state": "edited",
+      "pageNum": 1
+    },
+    {
+      "id": "core_loop",
+      "state": "edited",
+      "pageNum": 2
+    },
+    {
+      "id": "design_grammar",
+      "state": "edited",
+      "pageNum": 3
+    },
+    {
+      "id": "architecture",
+      "state": "edited",
+      "pageNum": 4
+    },
+    {
+      "id": "state_paths",
+      "state": "edited",
+      "pageNum": 5
+    },
+    {
+      "id": "coop_roles",
+      "state": "edited",
+      "pageNum": 6
+    },
+    {
+      "id": "relay_trials",
+      "state": "edited",
+      "pageNum": 7
+    },
+    {
+      "id": "coop_rewards",
+      "state": "edited",
+      "pageNum": 8
+    },
+    {
+      "id": "persistence",
+      "state": "edited",
+      "pageNum": 9
+    },
+    {
+      "id": "integrity",
+      "state": "edited",
+      "pageNum": 10
+    },
+    {
+      "id": "next_steps",
+      "state": "edited",
+      "pageNum": 11
+    }
+  ],
+  "outline": [
+    {
+      "id": "cover",
+      "title": "《回声》Sonar",
+      "summary": "后续开发代理技术交接；完整性加固后稳定版本。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "core_loop",
+      "title": "核心不是看见，而是发声的代价",
+      "summary": "说明声呐揭示空间与同时暴露玩家的核心玩法因果。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "design_grammar",
+      "title": "视觉与声音有严格语义边界",
+      "summary": "概述盲域极简主义色彩、几何与非语言音频规则。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "architecture",
+      "title": "一个静态外壳承载一个完整游戏体",
+      "summary": "说明单文件 Canvas 游戏主体与 React/Vite 外壳职责。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "state_paths",
+      "title": "两条接入路径共享一套章节世界",
+      "summary": "概述单人序章路径、双人职责校准和覆盖状态。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "coop_roles",
+      "title": "双人模式把信息不对称变成协作",
+      "summary": "说明 P1/P2 职责、重连、共同撤离与远距反馈。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "relay_trials",
+      "title": "四章触点把默契变为可执行的时序",
+      "summary": "呈现四章对应的分站时序谜题与设计目的。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "coop_rewards",
+      "title": "伪回声与默契终局提供协作回报",
+      "summary": "说明误导声源、协作勋记和 CR 三分支结局。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "persistence",
+      "title": "本地存储要保持域隔离与可恢复",
+      "summary": "说明单人、双人和监听配置存储域及键位规则。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "integrity",
+      "title": "双人稳定性取决于焦点与状态边界",
+      "summary": "说明 iframe 焦点、输入清理、查询隔离与单人回放。",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "next_steps",
+      "title": "第一轮工作应先消除回归风险",
+      "summary": "给出后续代理的 P0、P1 和 P2 优先级建议。",
+      "image_plan": "Use a suitable image if needed"
+    }
+  ]
+}
