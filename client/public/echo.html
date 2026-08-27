@@ -58,6 +58,9 @@
     #status .message.danger { color: #d44349; text-shadow: 0 0 22px rgba(161,42,48,.42); }
     #status .eyebrow { margin: 0 0 12px; color: rgba(211,170,88,.62); font-size: 9px; letter-spacing: .23em; }
     #status h1 { position: relative; display: inline-block; margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5vw, 66px); font-weight: 400; letter-spacing: .07em; }
+    #status[data-mode="select"] h1 { font-size:clamp(28px,4vw,52px); letter-spacing:.11em; }
+    #status[data-mode="select"] .message { transform:translateY(-2vh); }
+    #status[data-mode="select"] p { white-space:pre-line; }
     #status h1::after { content: ""; position: absolute; top: 14%; right: -.18em; width: 1px; height: 55%; background: currentColor; opacity: .42; transform: rotate(27deg); }
     #status p { margin: 0; color: rgba(255,255,255,.48); font-size: 10px; letter-spacing: .14em; line-height: 2; }
     #signal-glitch { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(246,246,242,.07) 4px, transparent 5px), linear-gradient(90deg, transparent, rgba(246,246,242,.08), transparent); mix-blend-mode: screen; }
@@ -261,13 +264,14 @@
     const PREVIEW_FAR = QUERY.has("far");
     const PREVIEW_TRIAL = QUERY.has("trial");
     const PREVIEW_DECOY = QUERY.has("decoy");
+    const PREVIEW_MODE = QUERY.get("mode");
 
     let width = 0, height = 0, dpr = 1, lastTime = performance.now(), pulseId = 0;
     let chapterIndex = 0, state = "prologue-title", player, player2, exit, monsters, records, shelters, pulses, traces, reveal, keys, bait, audio, prologue, ambientCue, audioGraph;
     let sonarCount = 0, runDeaths = 0, charge = 3, nextChargeAt = 0, alert = 0, lastEchoAt = 0, logUntil = 0, huntUntil = 0, lastHuntTargetAt = 0, lastDemoAt = 0;
     let activeChapter = -1, chapterFailures = 0, chapterStartSonar = 0, chapterIntegrity = 100;
     let archiveStore = (() => { try { const legacy = localStorage.getItem("sonar-ar01") === "1"; const stored = JSON.parse(localStorage.getItem("sonar-archives") || "{}"); if (legacy && !stored["AR-01"]) stored["AR-01"] = 100; return stored; } catch { return {}; } })();
-    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", settingsReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null, threatLevel = 0, shelterLatched = false, silencePulseUntil = 0, calibrationTimer = 0, coOp = false, analysisCharge = 2, analysisNextAt = 0, relays = [], relayTask = null, coopDowns = 0, coopAlertPeak = 0, partnerHint = 0, lastPartnerCueAt = 0, instructionTimer = 0, falseCue = null;
+    let archivePage = 0, archiveEntryIndex = 0, archiveReturnState = "", replayReturnState = "", settingsReturnState = "", replayIndex = 0, replayMode = false, glitchTimer = 0, finalEnding = null, threatLevel = 0, shelterLatched = false, silencePulseUntil = 0, calibrationTimer = 0, coOp = false, selectedMode = "solo", analysisCharge = 2, analysisNextAt = 0, relays = [], relayTask = null, coopDowns = 0, coopAlertPeak = 0, partnerHint = 0, lastPartnerCueAt = 0, instructionTimer = 0, falseCue = null;
     let bestStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-best-integrity") || "{}"); } catch { return {}; } })();
     let badgeStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-chapter-badges") || "{}"); } catch { return {}; } })();
     let cueStore = (() => { try { return JSON.parse(localStorage.getItem("sonar-cue-evidence") || "{}"); } catch { return {}; } })();
@@ -489,14 +493,25 @@
       statusEl.querySelector(".message").classList.toggle("danger", kind === "danger");
       statusEl.classList.add("visible");
     }
-    function hideStatus() { statusEl.classList.remove("visible"); }
+    function hideStatus() { delete statusEl.dataset.mode; statusEl.classList.remove("visible"); }
     function setGameplayHud(visible) { [chapterEl,usageEl,resourcesEl,objectiveEl].forEach(element => element.style.opacity = visible ? "1" : "0"); }
 
+    function showModeSelection() {
+      const coopSelected = selectedMode === "coop";
+      statusEl.dataset.mode="select";
+      showStatus("brief", "接入选择 // 阵列 01 / 02", coopSelected ? "双信道协议" : "单人监听", coopSelected ? "通道 02 // P1/P2 校验待命\n← / → 切换 · ENTER 接通 · 点击右侧信道" : "通道 01 // 独立监听待命\n← / → 切换 · ENTER 接通 · 点击左侧信道");
+      showLog(coopSelected ? "双信道待接通 // 需要两名监听者。" : "单人监听待接通 // 仅一条回声。", 4200);
+    }
+    function selectMode(mode) {
+      selectedMode = mode === "coop" ? "coop" : "solo";
+      if (state === "prologue-title") showModeSelection();
+    }
+    function enterSelectedMode() { if (selectedMode === "coop") startCoOp(); else beginPrologue(); }
     function loadPrologue(resetRun = true) {
       chapterIndex = 0;
       shelterLatched = false; silencePulseUntil = 0;
       player = { x:width * .50, y:height * .73, r:5.5, exposedUntil:0 };
-      player2 = null; coOp = false;
+      player2 = null; coOp = false; selectedMode = "solo";
       exit = { x:-100, y:-100, r:0, revealUntil:0, unlocked:false };
       monsters = []; records = []; shelters = []; pulses = []; traces = []; reveal = []; keys = Object.create(null); bait = null;
       prologue = { anchor:{ x:width * .50, y:height * .32, r:10 }, phase:"title", wakeUntil:0, anomalyUntil:0, transitionAt:0, briefAt:0, signalLine:SIGNAL_RECORDS[Math.floor(Math.random() * SIGNAL_RECORDS.length)] };
@@ -508,9 +523,8 @@
       activeChapter = -1; chapterFailures = 0; chapterStartSonar = 0; chapterIntegrity = 100;
       setGameplayHud(false);
       hintEl.style.opacity = "0";
-      showLog("失落信号 // 等待接通。", 4200);
       if (audioGraph) refreshMonsterVoices();
-      showStatus("brief", "失落信号 // 00", "回声", "ENTER / 左键 单人接通 · 2 双信道协议 · ESC 监听设置");
+      showModeSelection();
     }
     function beginPrologue() {
       if (state !== "prologue-title") return;
@@ -611,7 +625,7 @@
     function beginChapter() { if (state !== "brief") return; ensureAudio(); state = "playing"; hideStatus(); hintEl.style.opacity = "1"; clearTimeout(instructionTimer); instructionTimer=setTimeout(()=>{if(state==="playing")hintEl.style.opacity="0";},4200); showLog("目标载入 // 读取全部章节记录。", 2400); }
     function nextChapter() { if (state !== "interchapter") return; if (chapterIndex < CHAPTERS.length - 1) loadChapter(chapterIndex + 1); }
     function startNewRun() { loadPrologue(true); }
-    function startCoOp() { coOp=true; replayMode=false; loadChapter(0,true); showStatus("brief","双信道 // 本地协作","静水观测","P1 // WASD + E · P2 // 方向键 + / · 共同撤离 · ENTER / 左键开始"); showLog("双信道接通 // 仅解析脉冲可恢复记录。",4200); }
+    function startCoOp() { delete statusEl.dataset.mode; selectedMode="coop"; coOp=true; replayMode=false; loadChapter(0,true); showStatus("brief","双信道校准 // 本地协作","静水观测","探路回路 / P1 · 解码回路 / P2 · ENTER / 左键开始"); showLog("双信道接通 // 仅解析脉冲可恢复记录。",4200); }
 
     function resize() {
       const oldWidth = width || innerWidth, oldHeight = height || innerHeight;
@@ -782,8 +796,10 @@
     function drawPrologue(now) {
       const active = state !== "prologue-title";
       if (!active) {
-        const x = width*.50, y = height*.57, radius = Math.min(width,height)*.16;
-        ctx.save();ctx.globalAlpha=.36;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.85;ctx.setLineDash([2,12]);ctx.shadowColor="rgba(255,255,255,.28)";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(x,y,radius,.18,Math.PI*1.66);ctx.stroke();ctx.globalAlpha=.55;ctx.setLineDash([]);ctx.beginPath();ctx.arc(x,y,radius*.56,-.15,Math.PI*.43);ctx.stroke();ctx.fillStyle=COLORS.white;ctx.shadowColor="rgba(255,255,255,.82)";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(x,y,2.1,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.3;ctx.beginPath();ctx.moveTo(x-radius*.82,y-radius*.18);ctx.lineTo(x-radius*.42,y-radius*.18);ctx.moveTo(x+radius*.40,y+radius*.39);ctx.lineTo(x+radius*.72,y+radius*.39);ctx.stroke();ctx.restore();
+        const radius = Math.min(width,height)*.115, y = height*.68, soloX=width*.37, coopX=width*.63;
+        const drawChannel=(x,label,selected,paired)=>{ctx.save();ctx.translate(x,y);ctx.globalAlpha=selected?.92:.24;ctx.strokeStyle=COLORS.white;ctx.lineWidth=selected?1.12:.75;ctx.setLineDash(selected?[]:[2,10]);ctx.shadowColor=selected?"rgba(246,246,242,.56)":"rgba(246,246,242,.18)";ctx.shadowBlur=selected?12:3;ctx.beginPath();ctx.arc(0,0,radius,.20,Math.PI*1.67);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=selected?.76:.20;ctx.beginPath();ctx.arc(0,0,radius*.54,-.16,Math.PI*.43);ctx.stroke();ctx.beginPath();ctx.moveTo(radius*.67,-radius*.67);ctx.lineTo(radius*.92,-radius*.92);ctx.stroke();ctx.fillStyle=COLORS.white;ctx.shadowColor="rgba(246,246,242,.8)";ctx.shadowBlur=selected?12:4;ctx.globalAlpha=selected?1:.42;ctx.beginPath();ctx.arc(0,0,2.1,0,Math.PI*2);ctx.fill();if(paired){ctx.globalAlpha=selected?.86:.28;ctx.beginPath();ctx.arc(radius*.31,0,1.55,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(radius*.08,-radius*.32);ctx.lineTo(radius*.48,-radius*.32);ctx.moveTo(radius*.42,radius*.31);ctx.lineTo(radius*.73,radius*.31);ctx.stroke();ctx.font="7px ui-monospace";ctx.fillText(selected?"SYNC // READY":"SYNC // NULL",-radius*.48,-radius*1.25);}else{ctx.globalAlpha=selected?.72:.24;ctx.font="7px ui-monospace";ctx.fillText(selected?"SOURCE // READY":"SOURCE // NULL",-radius*.56,-radius*1.25);}ctx.globalAlpha=selected?.66:.25;ctx.font="8px ui-monospace";ctx.fillStyle=COLORS.white;ctx.fillText(label,-radius*.53,radius*1.27);ctx.restore();};
+        drawChannel(soloX,"01 // 单回路",selectedMode==="solo",false); drawChannel(coopX,"02 // 双信道",selectedMode==="coop",true);
+        ctx.save();ctx.globalAlpha=.22;ctx.strokeStyle=COLORS.white;ctx.lineWidth=.75;ctx.setLineDash([2,10]);ctx.beginPath();ctx.moveTo(soloX+radius*1.24,y);ctx.lineTo(coopX-radius*1.24,y);ctx.stroke();ctx.setLineDash([]);ctx.font="7px ui-monospace";ctx.fillStyle=COLORS.white;ctx.fillText(selectedMode==="coop"?"ARRAY // 02 // AWAITING PAIR":"ARRAY // 01 // STANDALONE",width*.5-68,y+radius*1.74);ctx.restore();
       }
       if (active) {
         const alpha = state === "prologue-wake" ? clamp(1 - (prologue.wakeUntil - now) / 1100,0,1) : .72;
@@ -815,10 +831,10 @@
     }
     function render(now) { ctx.clearRect(0,0,width,height);if(finalEnding&&(state==="won"||state==="replay-complete")){drawEndingVisual(finalEnding,now);return;}if(state.startsWith("prologue")){drawPrologue(now);return;}traces.forEach(trace=>drawTrace(trace,now));pulses.forEach(drawPulse);screenWalls().forEach((wall,i)=>drawWall(wall,alphaUntil(reveal[i],now)));shelters.forEach(shelter=>drawShelter(shelter,now));drawRelays(now);drawExit(now);records.forEach(record=>drawRecord(record,now));drawBait(now);monsters.forEach(monster=>drawMonster(monster,now));drawPlayer(now);drawPlayer2(now);drawPartnerHint();drawSilenceReset(now); }
     function frame(now) { const delta=Math.min(.035,(now-lastTime)/1000);lastTime=now;update(delta,now);render(now);requestAnimationFrame(frame); }
-    function actionInput() { if(state==="prologue-title")beginPrologue();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); else if(state==="replay-complete")openReplay(); }
-    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="settings"){if(key==="escape")closeSettings();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(key==="escape"){openSettings();event.preventDefault();return;}if(state==="prologue-title"&&key==="2"){startCoOp();event.preventDefault();return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="e"){emitPulse();event.preventDefault();}if(key==="/"){emitAnalysisPulse();event.preventDefault();}if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(attemptRevive()){event.preventDefault();return;}if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
+    function actionInput() { if(state==="prologue-title")enterSelectedMode();else if(state==="prologue-complete")loadChapter(0,true);else if(state==="brief")beginChapter(); else if(state==="interchapter")nextChapter(); else if(state==="replay-complete")openReplay(); }
+    addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(key==="m"){toggleMute();event.preventDefault();return;}if(state==="settings"){if(key==="escape")closeSettings();event.preventDefault();return;}if(state==="archive"){if(key==="f"||key==="escape")closeArchive();else if(key==="c"){closeArchive();openReplay();}else if(key==="arrowleft")archivePrevEl.click();else if(key==="arrowright")archiveNextEl.click();event.preventDefault();return;}if(state==="replay"){if(key==="c"||key==="escape")closeReplay();event.preventDefault();return;}if(key==="escape"){openSettings();event.preventDefault();return;}if(state==="prologue-title"){if(key==="arrowleft"||key==="1"){selectMode("solo");event.preventDefault();return;}if(key==="arrowright"||key==="2"){selectMode("coop");event.preventDefault();return;}if(key==="enter"){actionInput();event.preventDefault();return;}return;}if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){keys[key]=true;event.preventDefault();}if(key==="enter")actionInput();if(key==="e"){emitPulse();event.preventDefault();}if(key==="/"){emitAnalysisPulse();event.preventDefault();}if(key==="f")openArchive();if(key==="c")openReplay();if(key===" "){event.preventDefault();deployBait();}if(key==="r"){if(attemptRevive()){event.preventDefault();return;}if(state==="won")startNewRun();else if(state==="lost")loadChapter(chapterIndex);else if(state==="replay-complete")startReplay(replayIndex);}});
     addEventListener("keyup",event=>{keys[event.key.toLowerCase()]=false;});
-    addEventListener("pointerdown",event=>{if(event.button!==0||state==="archive"||state==="settings"||state==="replay")return;if(state==="prologue-title"||state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
+    addEventListener("pointerdown",event=>{if(event.button!==0||state==="archive"||state==="settings"||state==="replay")return;if(state==="prologue-title"){selectMode(event.clientX<width*.5?"solo":"coop");enterSelectedMode();}else if(state==="prologue-complete"||state==="brief"||state==="interchapter")actionInput();else if(state==="prologue-echo")emitProloguePulse();else if(state==="playing")emitPulse();});
     archivePrevEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage>0){archivePage-=1;}else{for(let index=archiveEntryIndex-1;index>=0;index-=1){if(entryIntegrity(index)>0){archiveEntryIndex=index;archivePage=2;break;}}}updateArchivePage();});
     archiveNextEl.addEventListener("click",event=>{event.stopPropagation();if(archivePage<2){archivePage+=1;}else{for(let index=archiveEntryIndex+1;index<ARCHIVE_ENTRIES.length;index+=1){if(entryIntegrity(index)>0){archiveEntryIndex=index;archivePage=0;break;}}}updateArchivePage();});
     archiveCloseEl.addEventListener("click",event=>{event.stopPropagation();closeArchive();});
@@ -834,7 +850,7 @@
     bassControlEl.addEventListener("input",()=>{audioPrefs.bass=Number(bassControlEl.value)/100;persistAudioPrefs();updateSettingsUi();updateAudioMix();});
     calibrationRunEl.addEventListener("click",runCalibration);
     addEventListener("resize",resize);
-    updateSettingsUi(); resize();if(DEMO){coOp=PREVIEW_COOP;const previewChapter=PREVIEW_TRIAL?clamp(Number(QUERY.get("trial")||1)-1,0,3):PREVIEW_SILENCE?2:0;loadChapter(previewChapter,true);beginChapter();if(PREVIEW_SILENCE){player.x=shelters[0].x;player.y=shelters[0].y;silencePulseUntil=performance.now()+2200;}if(PREVIEW_THREAT){alert=.88;monsters[0].x=player.x+width*.075;monsters[0].y=player.y-height*.04;huntUntil=performance.now()+99999;}if(PREVIEW_RELAY||PREVIEW_TRIAL){records.forEach(record=>{record.collected=true;record.revealUntil=performance.now()+9999;});relays.forEach(relay=>relay.revealUntil=performance.now()+9999);if(relayTask?.mode==="p1-first"){player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x-width*.06;player2.y=relays[1].y;}else if(relayTask?.mode==="p2-first"){player.x=relays[0].x-width*.06;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}else{player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}}if((PREVIEW_FAR||PREVIEW_DECOY)&&player2){player2.x=width*.90;player2.y=height*.82;}if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100,harmony:8};state="won";const previewTitles={"ER-00":"漂流噪声","ER-01":"回声仍在","ER-02":"岸上无声","CR-00":"失配记录","CR-01":"双声残响","CR-02":"同相离岸"};showStatus("brief","最终记录 " + PREVIEW_ENDING,previewTitles[PREVIEW_ENDING]||"预览记录","预览 // 最终记录画面");}if(PREVIEW_SETTINGS)openSettings();}else loadPrologue(true);requestAnimationFrame(frame);
+    updateSettingsUi(); resize();if(DEMO){coOp=PREVIEW_COOP;const previewChapter=PREVIEW_TRIAL?clamp(Number(QUERY.get("trial")||1)-1,0,3):PREVIEW_SILENCE?2:0;loadChapter(previewChapter,true);beginChapter();if(PREVIEW_SILENCE){player.x=shelters[0].x;player.y=shelters[0].y;silencePulseUntil=performance.now()+2200;}if(PREVIEW_THREAT){alert=.88;monsters[0].x=player.x+width*.075;monsters[0].y=player.y-height*.04;huntUntil=performance.now()+99999;}if(PREVIEW_RELAY||PREVIEW_TRIAL){records.forEach(record=>{record.collected=true;record.revealUntil=performance.now()+9999;});relays.forEach(relay=>relay.revealUntil=performance.now()+9999);if(relayTask?.mode==="p1-first"){player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x-width*.06;player2.y=relays[1].y;}else if(relayTask?.mode==="p2-first"){player.x=relays[0].x-width*.06;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}else{player.x=relays[0].x;player.y=relays[0].y;player2.x=relays[1].x;player2.y=relays[1].y;}}if((PREVIEW_FAR||PREVIEW_DECOY)&&player2){player2.x=width*.90;player2.y=height*.82;}if(PREVIEW_ARCHIVE){archiveStore["AR-01"]=100;archiveStore["AR-02"]=72;archiveStore["AR-03"]=48;cueStore[1]=true;openArchive();}if(PREVIEW_REPLAY){archiveStore["AR-01"]=100;bestStore={0:100,1:72,2:48};badgeStore={0:{noDamage:true,lowPulse:true},1:{lowPulse:true}};openReplay();}if(PREVIEW_ENDING){finalEnding={id:PREVIEW_ENDING,title:"预览记录",copy:"",average:100,harmony:8};state="won";const previewTitles={"ER-00":"漂流噪声","ER-01":"回声仍在","ER-02":"岸上无声","CR-00":"失配记录","CR-01":"双声残响","CR-02":"同相离岸"};showStatus("brief","最终记录 " + PREVIEW_ENDING,previewTitles[PREVIEW_ENDING]||"预览记录","预览 // 最终记录画面");}if(PREVIEW_SETTINGS)openSettings();}else{loadPrologue(true);if(PREVIEW_MODE==="coop")selectMode("coop");}requestAnimationFrame(frame);
   })();
   </script>
 </body>
