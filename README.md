@@ -1,116 +1,22 @@
 # 《回声》· Sonar
 
-**语言 / Language:** 简体中文 | [English](README_EN.md)
+**Language:** English | [简体中文](README_ZH.md)
 
-> **声音抵达之处，未必安全。**
+## English Overview
 
-![《回声》标题界面：黑场中的失落信号与断续声呐环](docs/images/sonar-cover.png)
+> **Where sound arrives, safety may not follow.**
 
-《回声》是一款以声音为核心机制的单文件 Canvas 氛围恐怖迷宫游戏。在绝对黑暗中，玩家只能借助短暂的声呐回波确认空间；每一次发声既带来信息，也会暴露自己的位置。四章流程从观察巡逻、外置诱导与静默舱，逐步推进到最终追猎与撤离，将“发声即代价”转化为持续升级的生存压力。
+*Sonar* is a single-file Canvas atmospheric horror maze built around sound. In near-total darkness, players rely on brief sonar echoes to read the space; every signal reveals information while giving away their position. Across four chapters—observation and patrols, external lures, the silent chamber, and the final pursuit and extraction—the game steadily turns “speaking is a cost” into escalating survival pressure.
 
-项目采用**盲域极简主义**视觉：冷白代表可确认的证据，余烬红代表暴露与威胁，旧金仅用于标示远端出口与撤离方向。完整的白色声呐环是画面中唯一稳定的几何形状，其余空间都会重新坠回黑暗。
+The visual language follows **blind-space minimalism**: cool white marks verifiable evidence, ember red signals exposure and threat, and antique gold is reserved for distant exits and the way out. The complete white sonar ring is the only stable geometry on screen; everything else falls back into darkness.
 
-## 核心体验
+### Core Experience
 
-| 系统 | 说明 |
+| System | Description |
 | --- | --- |
-| 声呐探路 | 主声呐扫描隐藏迷宫，短暂显形墙体、怪物、记录、静默舱与出口。 |
-| 风险循环 | 声呐会提高警觉；怪物会调查发声位置，玩家必须决定何时确认、何时保持静默。 |
-| 四章推进 | 观察巡逻、主动诱导、静默重置、追猎撤离依次复用并反转既有规则。 |
-| 声音叙事 | 使用 Web Audio 合成低频环境床、空间怪物声纹、记录提示与威胁混音，不使用合成语音。 |
-| 档案与重玩 | 信号完整度影响 AR-01 至 AR-05 的恢复文本；章节回放保存最佳完整度、无伤与低声呐勋记。 |
-| 多结局 | 单人结局由历史完整度决定；双人第四章则根据合作默契进入 CR-00、CR-01 或 CR-02。 |
-
----
-
-## 本地双人：默契试炼
-
-进入游戏时，先在首屏选择**单人监听**或**双信道协议**。可使用 `← / →` 切换并按 `Enter` 接通，使用 `1 / 2` 直接选中，或点击画面左半与右半直接接入。确认后会播放一段约一秒的断环收束校验，再进入单人苏醒或双人职责校准。本地双人不需要联网或额外服务。
-
-| 角色 | 职责 | 输入 |
-| --- | --- | --- |
-| 探路回路 / P1 | 移动、主声呐、引开危险并为团队确认空间。 | `WASD` 移动；`E` 或左键发射主声呐。 |
-| 解码回路 / P2 | 移动、短程解析并恢复章节记录。 | 方向键移动；`/` 发射解析脉冲。 |
-
-双人撤离要求两人同时抵达出口；任一人倒地后，伙伴可在 6.8 秒内靠近并按默认 `R` 重连。章节记录恢复后，撤离门会依章节切换校验方式：第一章同步驻留，第二章 P1 先行，第三章 P2 先行，第四章需先释放再同步。分离时还会出现不具视觉标记的远距伪回声，团队必须通过沟通判断它是否可信。每章结算会单独保存下一待玩章节；下次接入双信道时自动续行，第四章完成后回到第一章并累积完成次数。
-
-> **默契记录：** 四章累计的“无断线”与“低警觉”勋记决定 CR-00《失配记录》、CR-01《双声残响》或 CR-02《同相离岸》。门槛故意不显示为进度条。
-
-## 画面
-
-![双人默契试炼：P2 先行分站触点、双信道阵列读数与完整声呐环](docs/images/sonar-coop-trial.png)
-
-*第三章试炼：解码回路先行锁定，探路回路需在短窗口内响应。画面只给出短暂证据，真正的判断留给两名玩家。*
-
-![CR-02 同相离岸：双人最高默契记录的旧金终局画面](docs/images/sonar-coop-ending-cr02.png)
-
-*CR-02《同相离岸》：双信道在离开前保持同相，旧金轨迹成为唯一的远端方向。*
-
-## 控制与监听
-
-| 输入 | 功能 |
-| --- | --- |
-| `← / →`、`1 / 2`、`Enter` | 在首屏选择并接入单人或本地双人信道。 |
-| 左键 / `E` | P1 主声呐。 |
-| `/` | P2 解析脉冲。 |
-| `Space` | 部署已授权的外置回声诱饵。 |
-| `R` | 邻近重连；失败后重载本章。 |
-| `F` | 打开设备档案。 |
-| `C` | 打开章节回放。 |
-| `Esc` | 打开监听校准与音量/低频设置。 |
-| `M` | 持久化静音切换。 |
-
-在 `Esc` 的监听设置中，可在“单回路 // 01”与“双信道 // 02”之间切换，点击动作后按下新键完成映射。若绑定与同一回路内的既有动作冲突，系统会交换两者；`Esc`、`M`、`F`、`C` 以及模式选择键保留给系统。设置中也可清除双人续行记录。
-
-需要离开当前章节时，按 `Esc` 打开监听设置，选择“中止监听 // 返回信道选择”。确认页中按 `Enter` 返回单人/双人接入选择，按 `Esc` 取消并继续当前章节。中止不会删除档案、音量、键位或双人续行记录。
-
-建议使用耳机体验：怪物与队友提示会根据距离和左右方位改变声像、滤波与音量。首次操作后浏览器才会解锁音频输出。
-
-## 本地运行
-
-该仓库是 Vite 静态前端外壳，游戏主体位于 `client/public/echo.html`，不依赖后端服务。
-
-```bash
-pnpm install
-pnpm dev
-```
-
-打开开发服务器地址后即可开始。也可以直接以浏览器打开 `client/public/echo.html`；核心 Canvas、输入与 Web Audio 逻辑均在该单文件中。
-
-## 会话完整性
-
-正式首页只透传已知的开发验收参数，避免残留 URL 状态意外改变玩家入口。进入、关闭监听设置、取消中止或页面重新获得焦点后，游戏都会主动恢复键盘焦点；浏览器切换标签页或 iframe 失焦时会清空移动和按键捕获状态。双人续行、按键映射、档案和单人回放相互隔离，回放固定为单人回路。
-
-## 演示入口
-
-以下查询参数仅用于开发与视觉验收，不属于正式玩家功能。
-
-| 地址参数 | 预览内容 |
-| --- | --- |
-| `?demo&coop&trial=2` | 第二章 P1 先行分站时序。 |
-| `?demo&coop&trial=3` | 第三章 P2 先行分站时序。 |
-| `?demo&coop&decoy` | 远距伪回声的分离状态。 |
-| `?demo&ending=CR-00` | 失配记录画面。 |
-| `?demo&ending=CR-01` | 双声残响画面。 |
-| `?demo&ending=CR-02` | 同相离岸画面。 |
-| `?link=solo` / `?link=coop` | 单人或双人接通信号动画。 |
-| `?demo&settings&remap` | 自定义按键与双人续行记录预览。 |
-| `?demo&coop&abort` | 双人章节冻结后的中止监听确认。 |
-
-## 项目文档
-
-| 文档 | 内容 |
-| --- | --- |
-| [`CHAPTERS.md`](CHAPTERS.md) | 四章策略、叙事与规则反转。 |
-| [`COOP.md`](COOP.md) | 本地双人角色、救援与撤离协议。 |
-| [`COOP_CHALLENGES.md`](COOP_CHALLENGES.md) | 协作勋记、触点与伙伴方位反馈。 |
-| [`COOP_TRIALS.md`](COOP_TRIALS.md) | 默契终局、时序组合与伪回声规则。 |
-| [`AUDIO.md`](AUDIO.md) | Web Audio 环境、威胁与空间声设计。 |
-| [`ARCHIVES.md`](ARCHIVES.md) | 档案、完整度与单人最终记录。 |
-| [`STRUCTURE.md`](STRUCTURE.md) | 项目结构与运行时模块索引。 |
-
-## 技术构成
-
-`Canvas 2D` · `原生 JavaScript` · `Web Audio API` · `React 19` · `Vite`
-
-游戏逻辑不依赖游戏引擎，所有关键机制都集中在一个可独立运行的 HTML 文件中，以便持续迭代和直接分发。
+| Sonar navigation | The primary sonar briefly reveals walls, creatures, records, silent chambers, and exits. |
+| Risk loop | Every ping raises alertness and draws investigation, forcing a choice between information and silence. |
+| Four-chapter arc | Each chapter reuses and reverses the rules established before it. |
+| Audio storytelling | Web Audio synthesizes the ambience, creature signatures, log cues, and threat mixes—without synthetic speech. |
+| Archives and replay | Signal integrity unlocks AR-01–AR-05 fragments, while replay tracks the best integrity, no-hit, and low-ping records. |
+| Multiple endings | Solo endings depend on archive integrity; Chapter IV co-op leads to CR-00, CR-01, or CR-02 based on coordination. |
