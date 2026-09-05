@@ -1,27 +1,44 @@
 # 《回声》· Sonar
 
-> **声音抵达之处，未必安全。**<br>
-> **Where sound arrives, safety may not follow.**
+> **声音抵达之处，未必安全。**
 
 ![《回声》标题界面：黑场中的失落信号与断续声呐环](docs/images/sonar-cover.png)
 
 《回声》是一款以声音为核心机制的单文件 Canvas 氛围恐怖迷宫游戏。在绝对黑暗中，玩家只能借助短暂的声呐回波确认空间；每一次发声既带来信息，也会暴露自己的位置。四章流程从观察巡逻、外置诱导与静默舱，逐步推进到最终追猎与撤离，将“发声即代价”转化为持续升级的生存压力。
 
-*Sonar* is a single-file Canvas atmospheric horror maze built around sound. In near-total darkness, players rely on brief sonar echoes to read the space; every signal reveals information while giving away their position. Across four chapters—observation and patrols, external lures, the silent chamber, and the final pursuit and extraction—the game steadily turns “speaking is a cost” into escalating survival pressure.
-
-项目采用**盲域极简主义**视觉：冷白代表可确认的证据，余烬红代表暴露与威胁，旧金仅用于标示远端出口与撤离方向。完整的白色声呐环是画面中唯一稳定的几何形状，其余空间都会重新坠回黑暗。<br>
-The visual language follows **blind-space minimalism**: cool white marks verifiable evidence, ember red signals exposure and threat, and antique gold is reserved for distant exits and the way out. The complete white sonar ring is the only stable geometry on screen; everything else falls back into darkness.
+项目采用**盲域极简主义**视觉：冷白代表可确认的证据，余烬红代表暴露与威胁，旧金仅用于标示远端出口与撤离方向。完整的白色声呐环是画面中唯一稳定的几何形状，其余空间都会重新坠回黑暗。
 
 ## 核心体验
 
-| 系统 / System | 说明 / Description |
+| 系统 | 说明 |
 | --- | --- |
-| 声呐探路 / Sonar navigation | 主声呐扫描隐藏迷宫，短暂显形墙体、怪物、记录、静默舱与出口。 / The primary sonar briefly reveals walls, creatures, records, silent chambers, and exits. |
-| 风险循环 / Risk loop | 声呐会提高警觉；怪物会调查发声位置，玩家必须决定何时确认、何时保持静默。 / Every ping raises alertness and draws investigation, forcing a choice between information and silence. |
-| 四章推进 / Four-chapter arc | 观察巡逻、主动诱导、静默重置、追猎撤离依次复用并反转既有规则。 / Each chapter reuses and reverses the rules established before it. |
-| 声音叙事 / Audio storytelling | 使用 Web Audio 合成低频环境床、空间怪物声纹、记录提示与威胁混音，不使用合成语音。 / Web Audio synthesizes the ambience, creature signatures, log cues, and threat mixes—without synthetic speech. |
-| 档案与重玩 / Archives and replay | 信号完整度影响 AR-01 至 AR-05 的恢复文本；章节回放保存最佳完整度、无伤与低声呐勋记。 / Signal integrity unlocks AR-01–AR-05 fragments, while replay tracks the best integrity, no-hit, and low-ping records. |
-| 多结局 / Multiple endings | 单人结局由历史完整度决定；双人第四章则根据合作默契进入 CR-00、CR-01 或 CR-02。 / Solo endings depend on archive integrity; Chapter IV co-op leads to CR-00, CR-01, or CR-02 based on coordination. |
+| 声呐探路 | 主声呐扫描隐藏迷宫，短暂显形墙体、怪物、记录、静默舱与出口。 |
+| 风险循环 | 声呐会提高警觉；怪物会调查发声位置，玩家必须决定何时确认、何时保持静默。 |
+| 四章推进 | 观察巡逻、主动诱导、静默重置、追猎撤离依次复用并反转既有规则。 |
+| 声音叙事 | 使用 Web Audio 合成低频环境床、空间怪物声纹、记录提示与威胁混音，不使用合成语音。 |
+| 档案与重玩 | 信号完整度影响 AR-01 至 AR-05 的恢复文本；章节回放保存最佳完整度、无伤与低声呐勋记。 |
+| 多结局 | 单人结局由历史完整度决定；双人第四章则根据合作默契进入 CR-00、CR-01 或 CR-02。 |
+
+---
+
+## English Overview
+
+> **Where sound arrives, safety may not follow.**
+
+*Sonar* is a single-file Canvas atmospheric horror maze built around sound. In near-total darkness, players rely on brief sonar echoes to read the space; every signal reveals information while giving away their position. Across four chapters—observation and patrols, external lures, the silent chamber, and the final pursuit and extraction—the game steadily turns “speaking is a cost” into escalating survival pressure.
+
+The visual language follows **blind-space minimalism**: cool white marks verifiable evidence, ember red signals exposure and threat, and antique gold is reserved for distant exits and the way out. The complete white sonar ring is the only stable geometry on screen; everything else falls back into darkness.
+
+### Core Experience
+
+| System | Description |
+| --- | --- |
+| Sonar navigation | The primary sonar briefly reveals walls, creatures, records, silent chambers, and exits. |
+| Risk loop | Every ping raises alertness and draws investigation, forcing a choice between information and silence. |
+| Four-chapter arc | Each chapter reuses and reverses the rules established before it. |
+| Audio storytelling | Web Audio synthesizes the ambience, creature signatures, log cues, and threat mixes—without synthetic speech. |
+| Archives and replay | Signal integrity unlocks AR-01–AR-05 fragments, while replay tracks the best integrity, no-hit, and low-ping records. |
+| Multiple endings | Solo endings depend on archive integrity; Chapter IV co-op leads to CR-00, CR-01, or CR-02 based on coordination. |
 
 ## 本地双人：默契试炼
 
